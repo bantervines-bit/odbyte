@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 25.2.3.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="00:00:00"/>
+	<style type="text/css">
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		p { margin-bottom: 0.1in; line-height: 115%; background: transparent }
+		pre { font-size: 10pt; font-family: "Liberation Mono", monospace; background: transparent }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;{% block title %}ODByte - Your AI Prompt Library{% endblock %}&lt;/title&gt;
+    &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0b0b;
+        }
+        .glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg-[#0b0b0b] text-white min-h-screen&quot;&gt;
+    
+    &lt;nav class=&quot;bg-[#1a1a1a] border-b border-gray-800&quot;&gt;
+        &lt;div class=&quot;max-w-7xl mx-auto px-4 sm:px-6 lg:px-8&quot;&gt;
+            &lt;div class=&quot;flex justify-between items-center h-16&quot;&gt;
+                &lt;div class=&quot;flex items-center&quot;&gt;
+                    &lt;a href=&quot;{{ url_for('index') }}&quot; class=&quot;text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent&quot;&gt;
+                        ODByte
+                    &lt;/a&gt;
+                &lt;/div&gt;
+                
+                &lt;div class=&quot;hidden md:flex items-center space-x-6&quot;&gt;
+                    &lt;a href=&quot;{{ url_for('explore') }}&quot; class=&quot;text-gray-300 hover:text-white transition&quot;&gt;Explore&lt;/a&gt;
+                    
+                    {% if session.user_id %}
+                        &lt;a href=&quot;{{ url_for('dashboard') }}&quot; class=&quot;text-gray-300 hover:text-white transition&quot;&gt;Dashboard&lt;/a&gt;
+                        &lt;a href=&quot;{{ url_for('favorites') }}&quot; class=&quot;text-gray-300 hover:text-white transition&quot;&gt;Favorites&lt;/a&gt;
+                        
+                        {% if session.user_plan == 'free' %}
+                            &lt;a href=&quot;{{ url_for('upgrade') }}&quot; class=&quot;px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-sm font-semibold hover:opacity-90 transition glow&quot;&gt;
+                                Upgrade to Premium
+                            &lt;/a&gt;
+                        {% else %}
+                            &lt;span class=&quot;px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-xs font-semibold&quot;&gt;
+                                ⭐ Premium
+                            &lt;/span&gt;
+                        {% endif %}
+                        
+                        &lt;a href=&quot;{{ url_for('logout') }}&quot; class=&quot;text-gray-300 hover:text-red-400 transition&quot;&gt;Logout&lt;/a&gt;
+                    {% else %}
+                        &lt;a href=&quot;{{ url_for('login') }}&quot; class=&quot;text-gray-300 hover:text-white transition&quot;&gt;Login&lt;/a&gt;
+                        &lt;a href=&quot;{{ url_for('signup') }}&quot; class=&quot;px-4 py-2 bg-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-700 transition&quot;&gt;
+                            Sign Up
+                        &lt;/a&gt;
+                    {% endif %}
+                &lt;/div&gt;
+                
+                &lt;div class=&quot;md:hidden&quot;&gt;
+                    &lt;button id=&quot;mobile-menu-btn&quot; class=&quot;text-gray-400 hover:text-white&quot;&gt;
+                        &lt;svg class=&quot;h-6 w-6&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke=&quot;currentColor&quot;&gt;
+                            &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M4 6h16M4 12h16M4 18h16&quot;/&gt;
+                        &lt;/svg&gt;
+                    &lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;mobile-menu&quot; class=&quot;hidden md:hidden bg-[#1a1a1a] border-t border-gray-800&quot;&gt;
+            &lt;div class=&quot;px-2 pt-2 pb-3 space-y-1&quot;&gt;
+                &lt;a href=&quot;{{ url_for('explore') }}&quot; class=&quot;block px-3 py-2 text-gray-300 hover:bg-gray-800 rounded&quot;&gt;Explore&lt;/a&gt;
+                
+                {% if session.user_id %}
+                    &lt;a href=&quot;{{ url_for('dashboard') }}&quot; class=&quot;block px-3 py-2 text-gray-300 hover:bg-gray-800 rounded&quot;&gt;Dashboard&lt;/a&gt;
+                    &lt;a href=&quot;{{ url_for('favorites') }}&quot; class=&quot;block px-3 py-2 text-gray-300 hover:bg-gray-800 rounded&quot;&gt;Favorites&lt;/a&gt;
+                    
+                    {% if session.user_plan == 'free' %}
+                        &lt;a href=&quot;{{ url_for('upgrade') }}&quot; class=&quot;block px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded text-center font-semibold&quot;&gt;
+                            Upgrade to Premium
+                        &lt;/a&gt;
+                    {% endif %}
+                    
+                    &lt;a href=&quot;{{ url_for('logout') }}&quot; class=&quot;block px-3 py-2 text-red-400 hover:bg-gray-800 rounded&quot;&gt;Logout&lt;/a&gt;
+                {% else %}
+                    &lt;a href=&quot;{{ url_for('login') }}&quot; class=&quot;block px-3 py-2 text-gray-300 hover:bg-gray-800 rounded&quot;&gt;Login&lt;/a&gt;
+                    &lt;a href=&quot;{{ url_for('signup') }}&quot; class=&quot;block px-3 py-2 bg-blue-600 rounded text-center font-semibold&quot;&gt;Sign Up&lt;/a&gt;
+                {% endif %}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/nav&gt;
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            &lt;div class=&quot;max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4&quot;&gt;
+                {% for category, message in messages %}
+                    &lt;div class=&quot;{% if category == 'error' %}bg-red-900/50 border-red-500 text-red-200{% elif category == 'success' %}bg-green-900/50 border-green-500 text-green-200{% else %}bg-blue-900/50 border-blue-500 text-blue-200{% endif %} border px-4 py-3 rounded relative mb-4&quot; role=&quot;alert&quot;&gt;
+                        &lt;span class=&quot;block sm:inline&quot;&gt;{{ message }}&lt;/span&gt;
+                    &lt;/div&gt;
+                {% endfor %}
+            &lt;/div&gt;
+        {% endif %}
+    {% endwith %}
+    
+    &lt;main&gt;
+        {% block content %}{% endblock %}
+    &lt;/main&gt;
+    
+    &lt;footer class=&quot;bg-[#1a1a1a] border-t border-gray-800 mt-20&quot;&gt;
+        &lt;div class=&quot;max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8&quot;&gt;
+            &lt;div class=&quot;text-center text-gray-400 text-sm&quot;&gt;
+                &lt;p&gt;&amp;copy; 2024 ODByte. Save, discover, and share your best AI prompts.&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/footer&gt;
+    
+    &lt;script&gt;
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuBtn &amp;&amp; mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () =&gt; {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+        
+        setTimeout(() =&gt; {
+            const alerts = document.querySelectorAll('[role=&quot;alert&quot;]');
+            alerts.forEach(alert =&gt; {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() =&gt; alert.remove(), 500);
+            });
+        }, 5000);
+    &lt;/script&gt;
+    
+    {% block extra_js %}{% endblock %}
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</body>
+</html>

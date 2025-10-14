@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Favorites - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-8">My Favorites ❤️</h1>
+    
+    {% if prompts %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for prompt in prompts %}
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
+                        <span class="px-2 py-1 {% if prompt.visibility == 'public' %}bg-green-900/50 text-green-400{% else %}bg-gray-800 text-gray-400{% endif %} text-xs rounded">
+                            {{ prompt.visibility }}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-400 text-sm mb-4">{{ prompt.description[:100] }}{% if prompt.description|length > 100 %}...{% endif %}</p>
+                    
+                    <p class="text-gray-500 text-xs mb-4">By {{ prompt.author.name }}</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% if prompt.category %}
+                            <span class="px-2 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">{{ prompt.category }}</span>
+                        {% endif %}
+                        {% if prompt.ai_model %}
+                            <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">{{ prompt.ai_model }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+                       class="block w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-center transition">
+                        View Prompt
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4">❤️</div>
+            <h3 class="text-2xl font-semibold mb-2 text-gray-300">No favorites yet</h3>
+            <p class="text-gray-400 mb-6">Start exploring and favorite prompts you love!</p>
+            <a href="{{ url_for('explore') }}" 
+               class="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition">
+                Explore Prompts
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

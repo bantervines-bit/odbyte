@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 25.2.3.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="00:00:00"/>
+	<style type="text/css">
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		p { margin-bottom: 0.1in; line-height: 115%; background: transparent }
+		pre { font-size: 10pt; font-family: "Liberation Mono", monospace; background: transparent }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre>{% extends &quot;explore.html&quot; %}
+
+{% block title %}Explore - ODByte{% endblock %}
+
+{% block content %}
+&lt;div class=&quot;max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12&quot;&gt;
+    &lt;h1 class=&quot;text-4xl font-bold mb-8&quot;&gt;Explore Public Prompts&lt;/h1&gt;
+    
+    &lt;form method=&quot;GET&quot; class=&quot;bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 mb-8&quot;&gt;
+        &lt;div class=&quot;grid md:grid-cols-3 gap-4&quot;&gt;
+            &lt;input type=&quot;text&quot; name=&quot;search&quot; placeholder=&quot;Search prompts...&quot; value=&quot;{{ request.args.get('search', '') }}&quot;
+                   class=&quot;px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition&quot;&gt;
+           {% extends &quot;base.html&quot; %} 
+            &lt;select name=&quot;category&quot; 
+                    class=&quot;px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition&quot;&gt;
+                &lt;option value=&quot;&quot;&gt;All Categories&lt;/option&gt;
+                {% for cat in categories %}
+                    &lt;option value=&quot;{{ cat }}&quot; {% if request.args.get('category') == cat %}selected{% endif %}&gt;{{ cat }}&lt;/option&gt;
+                {% endfor %}
+            &lt;/select&gt;
+            
+            &lt;select name=&quot;ai_model&quot; 
+                    class=&quot;px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition&quot;&gt;
+                &lt;option value=&quot;&quot;&gt;All AI Models&lt;/option&gt;
+                {% for model in ai_models %}
+                    &lt;option value=&quot;{{ model }}&quot; {% if request.args.get('ai_model') == model %}selected{% endif %}&gt;{{ model }}&lt;/option&gt;
+                {% endfor %}
+            &lt;/select&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;flex gap-4 mt-4&quot;&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition&quot;&gt;
+                🔍 Search
+            &lt;/button&gt;
+            &lt;a href=&quot;{{ url_for('explore') }}&quot; class=&quot;px-6 py-3 bg-gray-# 🚀 ODByte -
+{% endblock %}</pre>
+</body>
+</html>
