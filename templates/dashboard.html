@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold mb-2">Welcome, {{ user.name }}! 👋</h1>
+        <p class="text-gray-400">
+            {% if user.plan == 'free' %}
+                Free Plan: {{ prompt_count }}/10 prompts saved
+            {% else %}
+                Premium Plan: {{ prompt_count }} prompts saved (Unlimited ✨)
+            {% endif %}
+        </p>
+    </div>
+    
+    <div class="flex flex-wrap gap-4 mb-8">
+        <a href="{{ url_for('new_prompt') }}" 
+           class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+            + New Prompt
+        </a>
+        
+        {% if user.plan == 'free' %}
+            <a href="{{ url_for('upgrade') }}" 
+               class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg font-semibold hover:opacity-90 transition">
+                ⭐ Upgrade to Premium
+            </a>
+        {% endif %}
+    </div>
+    
+    {% if prompts %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for prompt in prompts %}
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
+                        <span class="px-2 py-1 text-xs rounded {% if prompt.visibility == 'public' %}bg-green-900/50 text-green-400{% else %}bg-gray-800 text-gray-400{% endif %}">
+                            {{ prompt.visibility }}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-400 text-sm mb-4 line-clamp-2">{{ prompt.description }}</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% if prompt.category %}
+                            <span class="px-2 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">{{ prompt.category }}</span>
+                        {% endif %}
+                        {% if prompt.ai_model %}
+                            <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">{{ prompt.ai_model }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+                           class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-center transition">
+                            View
+                        </a>
+                        <a href="{{ url_for('edit_prompt', id=prompt.id) }}" 
+                           class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition">
+                            Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_prompt', id=prompt.id) }}" class="inline">
+                            <button type="submit" onclick="return confirm('Delete this prompt?')"
+                                    class="px-4 py-2 bg-red-900/50 hover:bg-red-900 rounded-lg text-sm transition">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4">📝</div>
+            <h3 class="text-2xl font-semibold mb-2 text-gray-300">No prompts yet</h3>
+            <p class="text-gray-400 mb-6">Create your first prompt to get started!</p>
+            <a href="{{ url_for('new_prompt') }}" 
+               class="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition">
+                Create First Prompt
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
