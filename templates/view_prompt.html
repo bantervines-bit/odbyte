@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prompt.title }} - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-bold mb-2 text-blue-400">{{ prompt.title }}</h1>
+                <p class="text-gray-400">By {{ prompt.author.name }}</p>
+            </div>
+            
+            {% if session.user_id %}
+                <button onclick="toggleFavorite({{ prompt.id }})" id="fav-btn"
+                        class="px-4 py-2 {% if is_favorited %}bg-red-600 hover:bg-red-700{% else %}bg-blue-600 hover:bg-blue-700{% endif %} rounded-lg transition">
+                    <span id="fav-text">{% if is_favorited %}❤️ Favorited{% else %}🤍 Favorite{% endif %}</span>
+                </button>
+            {% endif %}
+        </div>
+        
+        <p class="text-gray-300 mb-6">{{ prompt.description }}</p>
+        
+        <div class="bg-[#0b0b0b] p-6 rounded-lg mb-6 border border-gray-700">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-semibold text-gray-400">PROMPT CONTENT</h3>
+                <button onclick="copyPrompt()" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition">
+                    📋 Copy
+                </button>
+            </div>
+            <pre id="prompt-content" class="text-gray-200 whitespace-pre-wrap font-mono text-sm">{{ prompt.content }}</pre>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 mb-6">
+            {% if prompt.category %}
+                <span class="px-3 py-1 bg-purple-900/50 text-purple-300 text-sm rounded">{{ prompt.category }}</span>
+            {% endif %}
+            {% if prompt.ai_model %}
+                <span class="px-3 py-1 bg-blue-900/50 text-blue-300 text-sm rounded">{{ prompt.ai_model }}</span>
+            {% endif %}
+            {% if prompt.tags %}
+                {% for tag in prompt.tags.split(',') %}
+                    <span class="px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded">{{ tag.strip() }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="flex gap-4">
+            <a href="{{ url_for('explore') }}" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition">
+                ← Back to Explore
+            </a>
+            
+            {% if session.user_id and session.user_id == prompt.user_id %}
+                <a href="{{ url_for('edit_prompt', id=prompt.id) }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition">
+                    Edit Prompt
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-opacity">
+    Copied to clipboard! ✅
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyPrompt() {
+    const content = document.getElementById('
