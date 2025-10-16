@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        Get in Touch
+    </h1>
+    <p class="text-xl text-gray-400 text-center mb-12">
+        We'd love to hear from you. Questions, feedback, or just want to say hi?
+    </p>
+    
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h3 class="text-xl font-semibold mb-4 text-blue-400">📧 Email Us</h3>
+            <p class="text-gray-300 mb-4">For general inquiries, support, or partnerships:</p>
+            <a href="mailto:hello@odbyte.com" class="text-blue-400 hover:text-blue-300 font-semibold">
+                hello@odbyte.com
+            </a>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h3 class="text-xl font-semibold mb-4 text-purple-400">💬 Support</h3>
+            <p class="text-gray-300 mb-4">Need help with your account or have a technical issue?</p>
+            <a href="mailto:support@odbyte.com" class="text-purple-400 hover:text-purple-300 font-semibold">
+                support@odbyte.com
+            </a>
+        </div>
+    </div>
+    
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+        <h3 class="text-2xl font-semibold mb-6 text-center">Send Us a Message</h3>
+        <form action="#" method="POST" class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                    <input type="text" name="name" required 
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                    <input type="email" name="email" required 
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                <input type="text" name="subject" required 
+                       class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Message</label>
+                <textarea name="message" rows="6" required 
+                          class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition"></textarea>
+            </div>
+            
+            <button type="submit" 
+                    class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+                Send Message
+            </button>
+        </form>
+    </div>
+    
+    <p class="text-center text-gray-500 text-sm mt-8">
+        We typically respond within 24 hours on business days.
+    </p>
+</div>
+{% endblock %}
