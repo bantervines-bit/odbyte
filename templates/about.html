@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        About ODByte
+    </h1>
+    
+    <div class="prose prose-invert max-w-none">
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">Our Story</h2>
+            <p class="text-gray-300 mb-4">
+                We built ODByte because we were tired of losing our best AI prompts. You know the feeling — you craft the perfect prompt, get amazing results, and then... it's gone. Lost in chat history. Forgotten.
+            </p>
+            <p class="text-gray-300 mb-4">
+                ODByte started as a simple tool for ourselves. We're creators, marketers, and writers who use AI every single day. We needed a place to save our prompts, organize them, and actually find them when we needed them again.
+            </p>
+            <p class="text-gray-300">
+                Then we thought — why not share this with everyone?
+            </p>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-purple-400">Who It's For</h2>
+            <div class="grid md:grid-cols-2 gap-6 text-gray-300">
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">✍️ Content Creators</h3>
+                    <p class="text-sm">Save your best blog post prompts, video scripts, and social media ideas.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">📱 Digital Marketers</h3>
+                    <p class="text-sm">Store ad copy templates, email sequences, and campaign ideas.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">💻 Developers</h3>
+                    <p class="text-sm">Keep your code generation prompts and debugging helpers handy.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">🎨 Designers</h3>
+                    <p class="text-sm">Organize your Midjourney prompts and DALL-E templates.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-green-400">What Makes Us Different</h2>
+            <ul class="space-y-3 text-gray-300">
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>Simple & Fast:</strong> No clutter. Just save, organize, and find your prompts.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>Community-Powered:</strong> Discover what's working for others. Share your own wins.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>Privacy First:</strong> Your private prompts stay private. Always.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>No Subscriptions:</strong> Pay once for Premium. Use forever.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="text-center mt-12">
+        <a href="{{ url_for('signup') }}" class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-lg font-semibold hover:opacity-90 transition glow">
+            Join ODByte Today
+        </a>
+    </div>
+</div>
+{% endblock %}
