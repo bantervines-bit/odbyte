@@ -344,8 +344,21 @@ def payment_success():
 def payment_success_page():
     return render_template('success.html')
 
-with app.app_context():
-    db.create_all()
+# Initialize database tables on startup
+def init_db():
+    with app.app_context():
+        try:
+            db.create_all()
+            print("=" * 50)
+            print("✅ Database tables created successfully!")
+            print("=" * 50)
+        except Exception as e:
+            print("=" * 50)
+            print(f"❌ Error creating database tables: {e}")
+            print("=" * 50)
+
+# Run initialization
+init_db()
 
 if __name__ == '__main__':
     app.run(debug=True)
