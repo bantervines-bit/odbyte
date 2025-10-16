@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Newsletter - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            The ODByte Newsletter
+        </h1>
+        <p class="text-2xl text-gray-300 mb-4">
+            Get 10 new AI prompts every week — free.
+        </p>
+        <p class="text-lg text# 📦 ODByte - New Templates Package
+
+## File 1: templates/about.html
+```html
+{% extends "base.html" %}
+
+{% block title %}About Us - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        About ODByte
+    </h1>
+    
+    <div class="prose prose-invert max-w-none">
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">Our Story</h2>
+            <p class="text-gray-300 mb-4">
+                We built ODByte because we were tired of losing our best AI prompts. You know the feeling — you craft the perfect prompt, get amazing results, and then... it's gone. Lost in chat history. Forgotten.
+            </p>
+            <p class="text-gray-300 mb-4">
+                ODByte started as a simple tool for ourselves. We're creators, marketers, and writers who use AI every single day. We needed a place to save our prompts, organize them, and actually find them when we needed them again.
+            </p>
+            <p class="text-gray-300">
+                Then we thought — why not share this with everyone?
+            </p>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-purple-400">Who It's For</h2>
+            <div class="grid md:grid-cols-2 gap-6 text-gray-300">
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">✍️ Content Creators</h3>
+                    <p class="text-sm">Save your best blog post prompts, video scripts, and social media ideas.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">📱 Digital Marketers</h3>
+                    <p class="text-sm">Store ad copy templates, email sequences, and campaign ideas.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">💻 Developers</h3>
+                    <p class="text-sm">Keep your code generation prompts and debugging helpers handy.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">🎨 Designers</h3>
+                    <p class="text-sm">Organize your Midjourney prompts and DALL-E templates.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-green-400">What Makes Us Different</h2>
+            <ul class="space-y-3 text-gray-300">
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>Simple & Fast:</strong> No clutter. Just save, organize, and find your prompts.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>Community-Powered:</strong> Discover what's working for others. Share your own wins.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>Privacy First:</strong> Your private prompts stay private. Always.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">✓</span>
+                    <span><strong>No Subscriptions:</strong> Pay once for Premium. Use forever.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="text-center mt-12">
+        <a href="{{ url_for('signup') }}" class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-lg font-semibold hover:opacity-90 transition glow">
+            Join ODByte Today
+        </a>
+    </div>
+</div>
+{% endblock %}
+```
+
+---
+
+## File 2: templates/contact.html
+```html
+{% extends "base.html" %}
+
+{% block title %}Contact Us - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        Get in Touch
+    </h1>
+    <p class="text-xl text-gray-400 text-center mb-12">
+        We'd love to hear from you. Questions, feedback, or just want to say hi?
+    </p>
+    
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h3 class="text-xl font-semibold mb-4 text-blue-400">📧 Email Us</h3>
+            <p class="text-gray-300 mb-4">For general inquiries, support, or partnerships:</p>
+            <a href="mailto:hello@odbyte.com" class="text-blue-400 hover:text-blue-300 font-semibold">
+                hello@odbyte.com
+            </a>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h3 class="text-xl font-semibold mb-4 text-purple-400">💬 Support</h3>
+            <p class="text-gray-300 mb-4">Need help with your account or have a technical issue?</p>
+            <a href="mailto:support@odbyte.com" class="text-purple-400 hover:text-purple-300 font-semibold">
+                support@odbyte.com
+            </a>
+        </div>
+    </div>
+    
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+        <h3 class="text-2xl font-semibold mb-6 text-center">Send Us a Message</h3>
+        <form action="#" method="POST" class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                    <input type="text" name="name" required 
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                    <input type="email" name="email" required 
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                <input type="text" name="subject" required 
+                       class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Message</label>
+                <textarea name="message" rows="6" required 
+                          class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition"></textarea>
+            </div>
+            
+            <button type="submit" 
+                    class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+                Send Message
+            </button>
+        </form>
+    </div>
+    
+    <p class="text-center text-gray-500 text-sm mt-8">
+        We typically respond within 24 hours on business days.
+    </p>
+</div>
+{% endblock %}
+```
+
+---
+
+## File 3: templates/privacy_policy.html
+```html
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-4">Privacy Policy</h1>
+    <p class="text-gray-400 mb-8">Last updated: March 2025</p>
+    
+    <div class="prose prose-invert max-w-none space-y-8">
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">The Simple Version</h2>
+            <p class="text-gray-300">
+                We respect your privacy. We collect only what we need to run the service. We don't sell your data. Your private prompts stay private. That's it.
+            </p>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-3 text-purple-400">What We Collect</h2>
+            <ul class="space-y-2 text-gray-300 list-disc list-inside">
+                <li><strong>Account Info:</strong> Your name, email, and password (encrypted).</li>
+                <li><strong>Prompts:</strong> The content you save (public or private).</li>
+                <li><strong>Usage Data:</strong> Basic analytics to improve the app.</li>
+                <li><strong>Payment Info:</strong> Processed securely through Razorpay. We don't store card details.</li>
+            </ul>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-3 text-purple-400">How We Use It</h2>
+            <ul class="space-y-2 text-gray-300 list-disc list-inside">
+                <li>To run your account and save your prompts.</li>
+                <li>To show public prompts in the Explore section.</li>
+                <li>To process Premium upgrades.</li>
+                <li>To send important updates (we won't spam you).</li>
+            </ul>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-3 text-purple-400">Your Rights</h2>
+            <p class="text-gray-300 mb-3">You can:</p>
+            <ul class="space-y-2 text-gray-300 list-disc list-inside">
+                <li>Access all your data anytime.</li>
+                <li>Delete your prompts whenever you want.</li>
+                <li>Delete your entire account (email us).</li>
+                <li>Export your data (coming soon).</li>
+            </ul>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-3 text-purple-400">Security</h2>
+            <p class="text-gray-300">
+                We use industry-standard encryption and security practices. Your password is hashed. Private prompts are only visible to you. We take security seriously.
+            </p>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-3 text-purple-400">Cookies</h2>
+            <p class="text-gray-300">
+                We use essential cookies to keep you logged in and make the site work. That's it. No tracking cookies or third-party nonsense.
+            </p>
+        </div>
+        
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-3 text-purple-400">Questions?</h2>
+            <p class="text-gray-300">
+                Email us at <a href="mailto:privacy@odbyte.com" class="text-blue-400 hover:text-blue-300">privacy@odbyte.com</a>. We'll get back to you within 48 hours.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+```
+
+I'll continue with more templates in the next message...
