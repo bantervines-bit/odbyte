@@ -67,4 +67,40 @@
 {% block extra_js %}
 <script>
 function copyPrompt() {
-    const content = document.getElementById('
+    const content = document.getElementById('prompt-content').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+        showToast();
+    });
+}
+
+function showToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.remove('hidden');
+    setTimeout(() => {
+        toast.classList.add('hidden');
+    }, 3000);
+}
+
+function toggleFavorite(promptId) {
+    fetch(`/favorite/${promptId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const btn = document.getElementById('fav-btn');
+        const text = document.getElementById('fav-text');
+        
+        if (data.status === 'added') {
+            btn.className = 'px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition';
+            text.textContent = '❤️ Favorited';
+        } else {
+            btn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition';
+            text.textContent = '🤍 Favorite';
+        }
+    });
+}
+</script>
+{% endblock %}
