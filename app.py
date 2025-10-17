@@ -383,57 +383,6 @@ def privacy_policy():
 def terms_of_service():
     return render_template('terms_of_service.html')
 
-@app.route('/blog')
-def blog():
-    # Sample blog posts - you can later move this to database
-    posts = [
-        {
-            'id': 1,
-            'title': '10 Must-Try ChatGPT Prompts for Digital Marketers (2025)',
-            'slug': '10-chatgpt-prompts-digital-marketers-2025',
-            'excerpt': 'Discover the top 10 ChatGPT prompts that every digital marketer needs in their toolkit. From content creation to ad copy...',
-            'date': 'March 15, 2025',
-            'author': 'ODByte Team',
-            'category': 'Marketing'
-        },
-        {
-            'id': 2,
-            'title': 'How to Write Perfect Prompts for ChatGPT & Claude',
-            'slug': 'write-perfect-prompts-chatgpt-claude',
-            'excerpt': 'Learn the art of prompt engineering with our step-by-step guide. Master the techniques that get you better AI responses...',
-            'date': 'March 10, 2025',
-            'author': 'ODByte Team',
-            'category': 'Tutorial'
-        }
-    ]
-    return render_template('blog.html', posts=posts)
-
-@app.route('/blog/<slug>')
-def blog_post(slug):
-    # Blog post data - you can later move this to database
-    posts = {
-        '10-chatgpt-prompts-digital-marketers-2025': {
-            'title': '10 Must-Try ChatGPT Prompts for Digital Marketers (2025)',
-            'date': 'March 15, 2025',
-            'author': 'ODByte Team',
-            'category': 'Marketing',
-            'content': 'blog_post_1'  # template name
-        },
-        'write-perfect-prompts-chatgpt-claude': {
-            'title': 'How to Write Perfect Prompts for ChatGPT & Claude',
-            'date': 'March 10, 2025',
-            'author': 'ODByte Team',
-            'category': 'Tutorial',
-            'content': 'blog_post_2'  # template name
-        }
-    }
-    
-    post = posts.get(slug)
-    if not post:
-        flash('Blog post not found!', 'error')
-        return redirect(url_for('blog'))
-    
-    return render_template(f"{post['content']}.html", post=post)
 
 @app.route('/newsletter')
 def newsletter():
@@ -446,6 +395,18 @@ def newsletter_subscribe():
     # For now, just flash a success message
     flash('Thanks for subscribing! Check your inbox for confirmation.', 'success')
     return redirect(url_for('newsletter'))
+
+@app.route('/blog')
+def blog():
+    # For now, empty posts list. You can add posts later in database
+    posts = []
+    return render_template('blog.html', posts=posts)
+
+@app.route('/blog/<slug>')
+def blog_post(slug):
+    # Sample structure - you'll add actual posts to database later
+    flash('Blog post coming soon!', 'info')
+    return redirect(url_for('blog'))
 
 if __name__ == '__main__':
     app.run(debug=True)
