@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Blog - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-2">ODByte Blog</h1>
+    <p class="text-xl text-gray-400 mb-12">Tips, guides, and insights on AI prompt engineering</p>
+    
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <div class="space-y-8">
+                {% if posts %}
+                    {% for post in posts %}
+                    <article class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-3 py-1 bg-blue-900/50 text-blue-300 text-sm rounded">{{ post.category }}</span>
+                            <span class="text-gray-500 text-sm">{{ post.date }}</span>
+                        </div>
+                        
+                        <h2 class="text-2xl font-bold mb-3 hover:text-blue-400 transition">
+                            <a href="{{ url_for('blog_post', slug=post.slug) }}">{{ post.title }}</a>
+                        </h2>
+                        
+                        <p class="text-gray-400 mb-4">{{ post.excerpt }}</p>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">By {{ post.author }}</span>
+                            <a href="{{ url_for('blog_post', slug=post.slug) }}" 
+                               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition">
+                                Read More →
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-20">
+                        <div class="text-6xl mb-4">📝</div>
+                        <h3 class="text-2xl font-semibold mb-2 text-gray-300">Coming Soon!</h3>
+                        <p class="text-gray-400">We're working on awesome content for you.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <aside class="lg:col-span-1">
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 sticky top-4">
+                <h3 class="text-xl font-bold mb-4 text-blue-400">Recent Posts</h3>
+                
+                {% if posts %}
+                <ul class="space-y-4">
+                    {% for post in posts[:3] %}
+                    <li>
+                        <a href="{{ url_for('blog_post', slug=post.slug) }}" 
+                           class="text-gray-300 hover:text-blue-400 transition">
+                            {{ post.title }}
+                        </a>
+                        <p class="text-sm text-gray-500 mt-1">{{ post.date }}</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-gray-400 text-sm">No posts yet. Check back soon!</p>
+                {% endif %}
+                
+                <div class="mt-8 pt-8 border-t border-gray-700">
+                    <h3 class="text-xl font-bold mb-4 text-purple-400">Categories</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-gray-800 rounded text-sm text-gray-300">Marketing</span>
+                        <span class="px-3 py-1 bg-gray-800 rounded text-sm text-gray-300">Tutorial</span>
+                        <span class="px-3 py-1 bg-gray-800 rounded text-sm text-gray-300">Tips</span>
+                        <span class="px-3 py-1 bg-gray-800 rounded text-sm text-gray-300">AI News</span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-8 border-t border-gray-700">
+                    <h3 class="text-lg font-bold mb-3">📬 Newsletter</h3>
+                    <p class="text-sm text-gray-400 mb-4">Get 10 prompts weekly</p>
+                    <a href="{{ url_for('newsletter') }}" 
+                       class="block w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-center font-semibold hover:opacity-90 transition">
+                        Subscribe
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
