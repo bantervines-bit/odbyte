@@ -1,69 +1,163 @@
 {% extends "base.html" %}
 
-{% block title %}Upgrade to Premium - ODByte{% endblock %}
+{% block title %}Upgrade to Diamond - ODByte{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="text-center mb-12">
-        <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-            Upgrade to Premium
+        <div class="text-6xl mb-4">💎</div>
+        <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Upgrade to Diamond
         </h1>
         <p class="text-xl text-gray-400">Unlock unlimited prompts and premium features</p>
     </div>
     
     <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <!-- Current Plan (Silver) -->
         <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
-            <h3 class="text-2xl font-bold mb-4 text-gray-300">Free Plan</h3>
-            <div class="text-4xl font-bold mb-6 text-blue-400">₹0</div>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="text-4xl">🥈</div>
+                <h3 class="text-2xl font-bold text-gray-300">Your Current Plan: Silver</h3>
+            </div>
+            <div class="text-4xl font-bold mb-6 text-gray-500">Free</div>
             <ul class="space-y-3 text-gray-400">
-                <li>✓ 10 prompts maximum</li>
+                <li>✓ 10 prompts/month (public only)</li>
+                <li>✓ Explore 50 public prompts</li>
+                <li>✓ 3 private bundles/month</li>
                 <li>✓ Basic features</li>
-                <li>✓ Public & private prompts</li>
-                <li>✓ Explore community prompts</li>
+                <li>✗ No exports</li>
+                <li>✗ No analytics</li>
+                <li>✗ No premium packs</li>
             </ul>
         </div>
         
-        <div class="bg-gradient-to-br from-yellow-600 to-orange-600 p-8 rounded-xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 bg-white text-orange-600 px-4 py-1 rounded-bl-lg font-bold text-sm">
-                BEST VALUE
+        <!-- Diamond Plan -->
+        <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-8 rounded-xl border-2 border-blue-500 relative">
+            <div class="absolute -top-4 right-8 bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-1 rounded-full text-sm font-bold">
+                UPGRADE NOW
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-white">Premium Plan</h3>
-            <div class="text-4xl font-bold mb-2 text-white">₹499</div>
-            <div class="text-sm text-orange-100 mb-6">One-time payment</div>
-            <ul class="space-y-3 text-white">
-                <li>✓ Unlimited prompts</li>
-                <li>✓ All features included</li>
-                <li>✓ Priority support</li>
-                <li>✓ Lifetime access</li>
-                <li>✓ No recurring fees</li>
-            </ul>
             
-            <button onclick="initiatePayment()" 
-                    class="w-full mt-8 py-4 bg-white text-orange-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition glow">
-                Upgrade Now →
-            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="text-4xl">💎</div>
+                <h3 class="text-2xl font-bold text-blue-300">Diamond Plan</h3>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex items-baseline gap-3 mb-2">
+                    <span class="text-4xl font-bold text-blue-400">$5</span>
+                    <span class="text-gray-300">/month</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-2">or save 18% with</div>
+                <div class="flex items-baseline gap-3">
+                    <span class="text-3xl font-bold text-purple-400">$49</span>
+                    <span class="text-gray-300">lifetime</span>
+                </div>
+            </div>
+            
+            <ul class="space-y-3 text-gray-200 mb-8">
+                <li>✓ <strong>200 prompts/month</strong> (public/private)</li>
+                <li>✓ <strong>Unlimited explore</strong></li>
+                <li>✓ <strong>30 bundles/month</strong></li>
+                <li>✓ <strong>Export to CSV/JSON/Notion</strong></li>
+                <li>✓ <strong>Premium curated packs</strong></li>
+                <li>✓ <strong>Create & earn</strong> from packs</li>
+                <li>✓ <strong>Prompt analytics</strong></li>
+                <li>✓ <strong>Priority support</strong></li>
+            </ul>
         </div>
     </div>
     
-    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
-        <h3 class="text-2xl font-bold mb-6 text-center">Why Go Premium?</h3>
-        <div class="grid md:grid-cols-3 gap-6 text-center">
-            <div>
-                <div class="text-4xl mb-3">∞</div>
-                <h4 class="font-semibold mb-2">Unlimited Storage</h4>
-                <p class="text-gray-400 text-sm">Save as many prompts as you want, no limits!</p>
+    <!-- Payment Options -->
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
+        <h3 class="text-2xl font-semibold mb-6 text-center">Choose Your Payment Option</h3>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Monthly -->
+            <div class="bg-[#0b0b0b] p-6 rounded-lg border-2 border-gray-700 hover:border-blue-500 transition cursor-pointer">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="text-xl font-semibold text-blue-400 mb-1">Monthly</h4>
+                        <p class="text-sm text-gray-400">Cancel anytime</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-blue-400">$5</div>
+                        <div class="text-xs text-gray-400">/month</div>
+                    </div>
+                </div>
+                <button onclick="initiatePayment('monthly')" 
+                        class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                    Subscribe Monthly
+                </button>
             </div>
-            <div>
-                <div class="text-4xl mb-3">⚡</div>
-                <h4 class="font-semibold mb-2">Lifetime Access</h4>
-                <p class="text-gray-400 text-sm">One payment, use forever. No subscriptions.</p>
-            </div>
-            <div>
-                <div class="text-4xl mb-3">🎯</div>
-                <h4 class="font-semibold mb-2">Priority Support</h4>
-                <p class="text-gray-400 text-sm">Get help faster with premium support.</p>
+            
+            <!-- Lifetime -->
+            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-6 rounded-lg border-2 border-purple-500 hover:border-purple-400 transition cursor-pointer relative">
+                <div class="absolute -top-3 right-4 bg-green-600 px-3 py-1 rounded-full text-xs font-bold">
+                    SAVE 18%
+                </div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="text-xl font-semibold text-purple-400 mb-1">Lifetime</h4>
+                        <p class="text-sm text-gray-400">One payment, forever</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-purple-400">$49</div>
+                        <div class="text-xs text-gray-400">one-time</div>
+                    </div>
+                </div>
+                <button onclick="initiatePayment('lifetime')" 
+                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 rounded-lg font-semibold transition glow">
+                    Get Lifetime Access
+                </button>
             </div>
         </div>
+    </div>
+    
+    <!-- Benefits Breakdown -->
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
+        <h3 class="text-2xl font-semibold mb-6 text-center">What You'll Unlock</h3>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="text-4xl mb-3">📦</div>
+                <h4 class="font-semibold mb-2 text-blue-400">More Bundles</h4>
+                <p class="text-sm text-gray-400">Create 30 private bundles per month vs 3 on Silver</p>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl mb-3">📊</div>
+                <h4 class="font-semibold mb-2 text-purple-400">Analytics</h4>
+                <p class="text-sm text-gray-400">Track views, saves, and engagement on your prompts</p>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl mb-3">💰</div>
+                <h4 class="font-semibold mb-2 text-green-400">Earn Credits</h4>
+                <p class="text-sm text-gray-400">Create premium packs and earn extra prompt credits</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ -->
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+        <h3 class="text-xl font-semibold mb-4">Common Questions</h3>
+        <div class="space-y-4">
+            <div>
+                <h4 class="font-semibold text-blue-400 mb-1">What happens if I cancel monthly?</h4>
+                <p class="text-sm text-gray-400">You keep Diamond access until the end of your billing period. Your prompts are safe.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-blue-400 mb-1">Can I switch from monthly to lifetime?</h4>
+                <p class="text-sm text-gray-400">Yes! Contact support and we'll credit your monthly payments toward lifetime.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-blue-400 mb-1">Do I get a refund if I don't like it?</h4>
+                <p class="text-sm text-gray-400">Monthly: Cancel anytime. Lifetime: 7-day money-back guarantee, no questions asked.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-8">
+        <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300">
+            ← Back to Pricing
+        </a>
     </div>
 </div>
 {% endblock %}
@@ -71,22 +165,28 @@
 {% block extra_js %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-function initiatePayment() {
+function initiatePayment(type) {
+    let amount = type === 'monthly' ? 500 : 4900; // $5 or $49 in cents
+    
     fetch('/create-order', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+            plan_type: type,
+            amount: amount
+        })
     })
     .then(response => response.json())
     .then(data => {
         const options = {
             key: data.key,
             amount: data.amount,
-            currency: data.currency,
+            currency: 'USD',
             order_id: data.order_id,
             name: 'ODByte',
-            description: 'Premium Plan - Lifetime Access',
+            description: type === 'monthly' ? 'Diamond Plan - Monthly' : 'Diamond Plan - Lifetime',
             handler: function (response) {
                 const form = document.createElement('form');
                 form.method = 'POST';
@@ -107,9 +207,15 @@ function initiatePayment() {
                 signature.name = 'razorpay_signature';
                 signature.value = response.razorpay_signature;
                 
+                const planType = document.createElement('input');
+                planType.type = 'hidden';
+                planType.name = 'plan_type';
+                planType.value = type;
+                
                 form.appendChild(paymentId);
                 form.appendChild(orderId);
                 form.appendChild(signature);
+                form.appendChild(planType);
                 
                 document.body.appendChild(form);
                 form.submit();
