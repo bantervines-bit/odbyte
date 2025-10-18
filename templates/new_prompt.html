@@ -6,6 +6,16 @@
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <h1 class="text-4xl font-bold mb-8">Create New Prompt</h1>
     
+    <!-- Plan Info Banner -->
+    {% if user.plan == 'silver' %}
+    <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+        <p class="text-gray-300 text-sm">
+            🥈 <strong>Silver Plan:</strong> You can only create public prompts. 
+            <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300">Upgrade to Diamond</a> to create private prompts.
+        </p>
+    </div>
+    {% endif %}
+    
     <form method="POST" action="{{ url_for('new_prompt') }}" class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
         <div class="space-y-6">
             <div>
@@ -69,18 +79,37 @@
                        placeholder="comma, separated, tags">
             </div>
             
+            <!-- Visibility Logic -->
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
-                <div class="flex gap-4">
-                    <label class="flex items-center">
-                        <input type="radio" name="visibility" value="private" checked class="mr-2">
-                        <span class="text-gray-300">Private (Only you)</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="radio" name="visibility" value="public" class="mr-2">
-                        <span class="text-gray-300">Public (Share with community)</span>
-                    </label>
-                </div>
+                
+                {% if user.plan == 'silver' %}
+                    <!-- Silver users: Only public option -->
+                    <div class="bg-[#0b0b0b] p-4 rounded-lg border border-gray-700">
+                        <label class="flex items-center cursor-not-allowed">
+                            <input type="radio" name="visibility" value="public" checked disabled class="mr-2">
+                            <span class="text-gray-300">Public (Share with community)</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Silver users can only create public prompts. 
+                            <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300">Upgrade to Diamond</a> for private prompts.
+                        </p>
+                    </div>
+                    <input type="hidden" name="visibility" value="public">
+                    
+                {% else %}
+                    <!-- Diamond users: Both options -->
+                    <div class="flex gap-4">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="visibility" value="private" checked class="mr-2">
+                            <span class="text-gray-300">🔒 Private (Only you)</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="visibility" value="public" class="mr-2">
+                            <span class="text-gray-300">🌍 Public (Share with community)</span>
+                        </label>
+                    </div>
+                {% endif %}
             </div>
             
             <div class="flex gap-4">
@@ -95,5 +124,24 @@
             </div>
         </div>
     </form>
+    
+    <!-- Diamond Feature: Bulk Upload -->
+    {% if user.plan == 'diamond' %}
+    <div class="mt-8 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-6">
+        <div class="flex items-start gap-4">
+            <div class="text-4xl">💎</div>
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-2 text-blue-400">Diamond Feature: Bulk Upload</h3>
+                <p class="text-gray-300 mb-4">
+                    Save time by uploading multiple prompts at once. Perfect for importing your existing prompt collection.
+                </p>
+                <a href="{{ url_for('bulk_upload') }}" 
+                   class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                    Upload Multiple Prompts →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
