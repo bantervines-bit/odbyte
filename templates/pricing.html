@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-16">
+        <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Simple, Transparent Pricing
+        </h1>
+        <p class="text-xl text-gray-400 mb-8">
+            Start free. Upgrade when you're ready. No hidden fees.
+        </p>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+        
+        <!-- Free Plan (Silver) -->
+        <div class="bg-[#1a1a1a] rounded-2xl border-2 border-gray-700 p-8 hover:border-gray-600 transition">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="text-4xl">🥈</div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-300">Silver Plan</h3>
+                    <p class="text-gray-500 text-sm">Perfect for getting started</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <div class="text-4xl font-bold text-blue-400 mb-2">Free</div>
+                <p class="text-gray-400 text-sm">Forever. No credit card required.</p>
+            </div>
+            
+            <div class="space-y-3 mb-8">
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">Save up to <strong>10 prompts/month</strong> (public only)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">Explore up to <strong>50 public prompts</strong></span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">Create <strong>3 private bundles/month</strong></span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">Access <strong>trending prompts</strong></span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">Basic search functionality</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">Vote on prompts (usable/useless)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400 text-xl">✓</span>
+                    <span class="text-gray-300">See top 6 prompts</span>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('signup') }}" 
+               class="block w-full py-4 bg-gray-700 hover:bg-gray-600 text-center rounded-lg font-semibold transition">
+                Start Free
+            </a>
+        </div>
+
+        <!-- Pro Plan (Diamond) -->
+        <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl border-2 border-blue-500 p-8 relative hover:border-blue-400 transition">
+            <div class="absolute -top-4 right-8 bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-1 rounded-full text-sm font-bold">
+                MOST POPULAR
+            </div>
+            
+            <div class="flex items-center gap-3 mb-4">
+                <div class="text-4xl">💎</div>
+                <div>
+                    <h3 class="text-2xl font-bold text-blue-300">Diamond Plan</h3>
+                    <p class="text-gray-400 text-sm">For serious AI users</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex items-baseline gap-3 mb-2">
+                    <span class="text-4xl font-bold text-blue-400">$5</span>
+                    <span class="text-gray-400">/month</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-2">or</div>
+                <div class="flex items-baseline gap-3">
+                    <span class="text-3xl font-bold text-purple-400">$49</span>
+                    <span class="text-gray-400">lifetime</span>
+                    <span class="px-2 py-1 bg-green-900/50 text-green-300 text-xs rounded">Save 18%</span>
+                </div>
+            </div>
+            
+            <div class="space-y-3 mb-8">
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200">Save up to <strong>200 prompts/month</strong> (public/private)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200"><strong>Explore ALL prompts</strong> (unlimited)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200">Create <strong>30 private bundles/month</strong></span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200"><strong>Export prompts</strong> (CSV, JSON, Notion)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200">Access <strong>premium curated packs</strong></span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200"><strong>Create & earn</strong> from premium packs</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200"><strong>Prompt analytics</strong> (views, saves, engagement)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200"><strong>Priority support</strong> (email & Discord)</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-blue-400 text-xl">✓</span>
+                    <span class="text-gray-200">Everything in Silver, plus more!</span>
+                </div>
+            </div>
+            
+            {% if session.user_id %}
+                <a href="{{ url_for('upgrade') }}" 
+                   class="block w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-center rounded-lg font-semibold hover:opacity-90 transition glow">
+                    Upgrade to Diamond
+                </a>
+            {% else %}
+                <a href="{{ url_for('signup') }}" 
+                   class="block w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-center rounded-lg font-semibold hover:opacity-90 transition glow">
+                    Start Free Trial
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bundle Feature Highlight -->
+    <div class="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-2xl p-12 mb-16">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">📦</div>
+                <h2 class="text-3xl font-bold mb-4">Prompt Bundles - Our Core Feature</h2>
+                <p class="text-xl text-gray-300">Organize prompts like playlists. Share with a link. Stay organized.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                    <h3 class="text-xl font-semibold mb-3 text-purple-400">What are Bundles?</h3>
+                    <p class="text-gray-300 mb-4">
+                        Group related prompts together — like a playlist for your favorite songs. Perfect for organizing prompts by project, topic, or workflow.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>• Keep related prompts together</li>
+                        <li>• Private by default</li>
+                        <li>• Share with anyone via link</li>
+                        <li>• Export entire bundles</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                    <h3 class="text-xl font-semibold mb-3 text-pink-400">How Sharing Works</h3>
+                    <p class="text-gray-300 mb-4">
+                        Your bundles stay private. But you can generate a shareable link for specific people — perfect for teams or clients.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>• Generate unique share links</li>
+                        <li>• Anyone with link can view</li>
+                        <li>• Bundles stay under your control</li>
+                        <li>• Revoke access anytime</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Creator Economy -->
+    <div class="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-12 mb-16">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="text-6xl mb-4">🎨</div>
+            <h2 class="text-3xl font-bold mb-4">Creator Economy</h2>
+            <p class="text-xl text-gray-300 mb-8">
+                Diamond users can create premium prompt packs and earn credits when others use them.
+            </p>
+            
+            <div class="grid md:grid-cols-3 gap-6 text-left">
+                <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-700">
+                    <div class="text-3xl mb-3">📝</div>
+                    <h4 class="font-semibold mb-2 text-blue-400">Create Premium Packs</h4>
+                    <p class="text-sm text-gray-400">Curate your best prompts into premium packs for the community.</p>
+                </div>
+                
+                <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-700">
+                    <div class="text-3xl mb-3">🔥</div>
+                    <h4 class="font-semibold mb-2 text-purple-400">Get Discovered</h4>
+                    <p class="text-sm text-gray-400">Your premium packs appear in the premium section for all users.</p>
+                </div>
+                
+                <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-700">
+                    <div class="text-3xl mb-3">💰</div>
+                    <h4 class="font-semibold mb-2 text-green-400">Earn Credits</h4>
+                    <p class="text-sm text-gray-400">Get 1 prompt credit for each unique user who copies your pack.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="mb-16">
+        <h2 class="text-3xl font-bold text-center mb-8">Detailed Comparison</h2>
+        
+        <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-800">
+                            <th class="text-left p-4 text-gray-400 font-semibold">Feature</th>
+                            <th class="text-center p-4 text-gray-400 font-semibold">🥈 Silver (Free)</th>
+                            <th class="text-center p-4 text-blue-400 font-semibold">💎 Diamond (Pro)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Prompts per month</td>
+                            <td class="p-4 text-center text-gray-400">10 (public only)</td>
+                            <td class="p-4 text-center text-blue-400 font-semibold">200 (public/private)</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Explore prompts</td>
+                            <td class="p-4 text-center text-gray-400">Up to 50</td>
+                            <td class="p-4 text-center text-blue-400 font-semibold">Unlimited</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Private bundles/month</td>
+                            <td class="p-4 text-center text-gray-400">3</td>
+                            <td class="p-4 text-center text-blue-400 font-semibold">30</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Export (CSV/JSON/Notion)</td>
+                            <td class="p-4 text-center text-gray-600">✗</td>
+                            <td class="p-4 text-center text-green-400">✓</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Premium curated packs</td>
+                            <td class="p-4 text-center text-gray-600">✗</td>
+                            <td class="p-4 text-center text-green-400">✓</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Create premium packs</td>
+                            <td class="p-4 text-center text-gray-600">✗</td>
+                            <td class="p-4 text-center text-green-400">✓ (Earn credits)</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Prompt analytics</td>
+                            <td class="p-4 text-center text-gray-600">✗</td>
+                            <td class="p-4 text-center text-green-400">✓</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Vote on prompts</td>
+                            <td class="p-4 text-center text-green-400">✓</td>
+                            <td class="p-4 text-center text-green-400">✓</td>
+                        </tr>
+                        <tr class="border-b border-gray-800">
+                            <td class="p-4 text-gray-300">Top prompts visibility</td>
+                            <td class="p-4 text-center text-gray-400">6 prompts</td>
+                            <td class="p-4 text-center text-blue-400 font-semibold">All prompts</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-gray-300">Priority support</td>
+                            <td class="p-4 text-center text-gray-600">✗</td>
+                            <td class="p-4 text-center text-green-400">✓ (Email & Discord)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="max-w-3xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+        
+        <div class="space-y-4">
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                <h4 class="font-semibold mb-2 text-blue-400">Can I upgrade or downgrade anytime?</h4>
+                <p class="text-gray-400 text-sm">Yes! You can upgrade to Diamond anytime. If you choose monthly billing, you can cancel anytime. Lifetime users keep access forever.</p>
+            </div>
+            
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                <h4 class="font-semibold mb-2 text-blue-400">What happens to my prompts if I downgrade?</h4>
+                <p class="text-gray-400 text-sm">Your existing prompts are safe. You just won't be able to create new ones beyond the free limit until next month.</p>
+            </div>
+            
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                <h4 class="font-semibold mb-2 text-blue-400">How do creator credits work?</h4>
+                <p class="text-gray-400 text-sm">When someone copies your premium pack for the first time, you get 1 prompt saving credit. This means you can save 1 extra prompt that month. Only unique users count.</p>
+            </div>
+            
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                <h4 class="font-semibold mb-2 text-blue-400">What's the difference between monthly and lifetime?</h4>
+                <p class="text-gray-400 text-sm">Monthly is $5/month, billed monthly. Lifetime is a one-time $49 payment and you get Diamond access forever. Lifetime saves you money if you use it for 10+ months.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-16">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 glow">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
+            <p class="text-lg mb-8 text-gray-100">
+                Join thousands of AI users organizing their prompts
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ url_for('signup') }}" 
+                   class="px-8 py-4 bg-white text-blue-600 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
+                    Start Free
+                </a>
+                <a href="{{ url_for('contact') }}" 
+                   class="px-8 py-4 bg-transparent border-2 border-white rounded-lg text-lg font-semibold hover:bg-white/10 transition">
+                    Contact Sales
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
