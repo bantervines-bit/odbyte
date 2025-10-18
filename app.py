@@ -125,6 +125,11 @@ def logout():
 @login_required
 def dashboard():
     user = User.query.get(session['user_id'])
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
     prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
     prompt_count = len(prompts)
     return render_template('dashboard.html', user=user, prompts=prompts, prompt_count=prompt_count)
