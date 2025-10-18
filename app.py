@@ -392,6 +392,10 @@ def terms_of_service():
 @app.route('/newsletter')
 def newsletter():
     return render_template('newsletter.html')
+    
+    @app.route('/pricing')
+def pricing():
+    return render_template('pricing.html')
 
 @app.route('/newsletter/subscribe', methods=['POST'])
 def newsletter_subscribe():
