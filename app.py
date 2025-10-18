@@ -393,7 +393,7 @@ def terms_of_service():
 def newsletter():
     return render_template('newsletter.html')
     
-    @app.route('/pricing')
+@app.route('/pricing')
 def pricing():
     return render_template('pricing.html')
 
