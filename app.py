@@ -76,7 +76,41 @@ def login_required(f):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Get 6 most recent public prompts for homepage
+    recent_prompts = Prompt.query.filter_by(visibility='public').order_by(Prompt.created_at.desc()).limit(6).all()
+    
+    # Get 3 most recent blog posts
+    recent_posts = []
+    blog_dir = Path('blog_posts')
+    
+    if blog_dir.exists():
+        for file in sorted(blog_dir.glob('*.md'), reverse=True)[:3]:  # Get latest 3
+            try:
+                with open(file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    
+                    if content.startswith('---'):
+                        parts = content.split('---', 2)
+                        if len(parts) >= 3:
+                            metadata_text = parts[1]
+                            
+                            metadata = {}
+                            for line in metadata_text.strip().split('\n'):
+                                if ':' in line:
+                                    key, value = line.split(':', 1)
+                                    metadata[key.strip()] = value.strip()
+                            
+                            recent_posts.append({
+                                'title': metadata.get('title', 'Untitled'),
+                                'slug': metadata.get('slug', ''),
+                                'excerpt': metadata.get('excerpt', ''),
+                                'category': metadata.get('category', 'General')
+                            })
+            except Exception as e:
+                print(f"Error reading {file}: {e}")
+                continue
+    
+    return render_template('index.html', recent_prompts=recent_prompts, recent_posts=recent_posts)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
