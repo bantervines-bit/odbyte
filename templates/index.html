@@ -27,37 +27,6 @@
     </div>
 </div>
 
-<!-- Features Section -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-    <h2 class="text-3xl font-bold text-center mb-12 text-gray-100">Why ODByte?</h2>
-    
-    <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
-            <div class="text-5xl mb-4">💾</div>
-            <h3 class="text-xl font-semibold mb-3 text-blue-400">Save Your Prompts</h3>
-            <p class="text-gray-400">
-                Store all your favorite AI prompts in one secure place. Never lose a great prompt again.
-            </p>
-        </div>
-        
-        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 hover:border-purple-500 transition card-hover">
-            <div class="text-5xl mb-4">🔍</div>
-            <h3 class="text-xl font-semibold mb-3 text-purple-400">Explore New Ideas</h3>
-            <p class="text-gray-400">
-                Discover thousands of public prompts from the community. Get inspired by what others create.
-            </p>
-        </div>
-        
-        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 hover:border-pink-500 transition card-hover">
-            <div class="text-5xl mb-4">💎</div>
-            <h3 class="text-xl font-semibold mb-3 text-pink-400">Upgrade for Unlimited</h3>
-            <p class="text-gray-400">
-                Go Diamond for unlimited prompt storage and exclusive features. Unlock your full creative potential.
-            </p>
-        </div>
-    </div>
-</div>
-
 <!-- Bundles Feature Section -->
 <div class="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-y border-gray-800 py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -196,60 +165,6 @@
     {% endif %}
 </div>
 
-<!-- Recent Blog Posts Section -->
-<div class="bg-[#1a1a1a] border-y border-gray-800 py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h2 class="text-3xl font-bold mb-2">Recent from the Blog</h2>
-                <p class="text-gray-400">Learn tips, tricks, and best practices</p>
-            </div>
-            <a href="{{ url_for('blog') }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition hidden md:block">
-                View All Posts →
-            </a>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- Placeholder blog posts -->
-            <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
-                <div class="text-4xl mb-4">📝</div>
-                <span class="px-3 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">Tutorial</span>
-                <h3 class="text-xl font-semibold mt-4 mb-2">10 ChatGPT Prompts Every Marketer Needs</h3>
-                <p class="text-gray-400 text-sm mb-4">Discover the prompts that will transform your marketing workflow...</p>
-                <a href="{{ url_for('blog') }}" class="text-blue-400 hover:text-blue-300 text-sm font-semibold">
-                    Read More →
-                </a>
-            </div>
-            
-            <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-800 hover:border-purple-500 transition card-hover">
-                <div class="text-4xl mb-4">🎯</div>
-                <span class="px-3 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">Tips</span>
-                <h3 class="text-xl font-semibold mt-4 mb-2">How to Write Perfect AI Prompts</h3>
-                <p class="text-gray-400 text-sm mb-4">Master the art of prompt engineering with our complete guide...</p>
-                <a href="{{ url_for('blog') }}" class="text-purple-400 hover:text-purple-300 text-sm font-semibold">
-                    Read More →
-                </a>
-            </div>
-            
-            <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-800 hover:border-green-500 transition card-hover">
-                <div class="text-4xl mb-4">📦</div>
-                <span class="px-3 py-1 bg-green-900/50 text-green-300 text-xs rounded">Feature</span>
-                <h3 class="text-xl font-semibold mt-4 mb-2">Introducing Prompt Bundles</h3>
-                <p class="text-gray-400 text-sm mb-4">Learn how to organize your prompts like a pro with our new feature...</p>
-                <a href="{{ url_for('blog') }}" class="text-green-400 hover:text-green-300 text-sm font-semibold">
-                    Read More →
-                </a>
-            </div>
-        </div>
-        
-        <div class="text-center mt-8 md:hidden">
-            <a href="{{ url_for('blog') }}" class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
-                View All Posts →
-            </a>
-        </div>
-    </div>
-</div>
-
 <!-- Newsletter CTA Section -->
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
     <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-center glow">
@@ -260,19 +175,6 @@
         </p>
         <a href="{{ url_for('newsletter') }}" class="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
             Subscribe Now (Free)
-        </a>
-    </div>
-</div>
-
-<!-- CTA Section -->
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-    <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-12 text-center glow">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
-        <p class="text-lg text-gray-100 mb-8">
-            Join thousands of AI enthusiasts organizing their prompts
-        </p>
-        <a href="{{ url_for('signup') }}" class="inline-block px-8 py-4 bg-white text-purple-600 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
-            Create Free Account
         </a>
     </div>
 </div>
@@ -330,79 +232,7 @@
     </div>
 </div>
 
-<!-- Recent Prompts Section -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-gray-800">
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h2 class="text-3xl font-bold mb-2">Recent Prompts</h2>
-            <p class="text-gray-400">Check out what the community is creating</p>
-        </div>
-    </div>
-    
-    {% if recent_prompts %}
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {% for prompt in recent_prompts %}
-                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
-                        <span class="px-2 py-1 bg-green-900/50 text-green-400 text-xs rounded">Public</span>
-                    </div>
-                    
-                    <p class="text-gray-400 text-sm mb-4">{{ prompt.description[:100] }}{% if prompt.description|length > 100 %}...{% endif %}</p>
-                    
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        {% if prompt.category %}
-                            <span class="px-2 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">{{ prompt.category }}</span>
-                        {% endif %}
-                        {% if prompt.ai_model %}
-                            <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">{{ prompt.ai_model }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
-                       class="block w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-center transition text-sm">
-                        View Prompt
-                    </a>
-                </div>
-            {% endfor %}
-        </div>
-        
-        <div class="text-center">
-            {% if session.user_id %}
-                <a href="{{ url_for('explore') }}" 
-                   class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-lg font-semibold hover:opacity-90 transition glow">
-                    Explore All Prompts →
-                </a>
-            {% else %}
-                <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6 inline-block mb-4">
-                    <p class="text-gray-300 mb-4">
-                        <strong>Want to see all prompts?</strong> Create a free account first!
-                    </p>
-                    <div class="flex gap-4 justify-center">
-                        <a href="{{ url_for('signup') }}" 
-                           class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition">
-                            Create Account
-                        </a>
-                        <a href="{{ url_for('explore') }}" 
-                           class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition">
-                            Browse Anyway
-                        </a>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    {% else %}
-        <div class="text-center py-12">
-            <div class="text-6xl mb-4">🚀</div>
-            <h3 class="text-2xl font-semibold mb-2 text-gray-300">Be the First!</h3>
-            <p class="text-gray-400 mb-6">No public prompts yet. Create the first one and inspire the community.</p>
-            <a href="{{ url_for('signup') }}" 
-               class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-lg font-semibold hover:opacity-90 transition glow">
-                Get Started
-            </a>
-        </div>
-    {% endif %}
-</div>
+
 
 <!-- CTA Section -->
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -416,26 +246,58 @@
         </a>
     </div>
 </div>
-
-<!-- Stats Section -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-800">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <div>
-            <div class="text-3xl font-bold text-blue-400 mb-2">Free</div>
-            <div class="text-gray-400">Start for Free</div>
+<!-- Recent Blog Posts Section -->
+<div class="bg-[#1a1a1a] border-y border-gray-800 py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold mb-2">Recent from the Blog</h2>
+                <p class="text-gray-400">Learn tips, tricks, and best practices</p>
+            </div>
+            <a href="{{ url_for('blog') }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition hidden md:block">
+                View All Posts →
+            </a>
         </div>
-        <div>
-            <div class="text-3xl font-bold text-purple-400 mb-2">10</div>
-            <div class="text-gray-400">Prompts on Free Plan</div>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Placeholder blog posts -->
+            <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
+                <div class="text-4xl mb-4">📝</div>
+                <span class="px-3 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">Tutorial</span>
+                <h3 class="text-xl font-semibold mt-4 mb-2">10 ChatGPT Prompts Every Marketer Needs</h3>
+                <p class="text-gray-400 text-sm mb-4">Discover the prompts that will transform your marketing workflow...</p>
+                <a href="{{ url_for('blog') }}" class="text-blue-400 hover:text-blue-300 text-sm font-semibold">
+                    Read More →
+                </a>
+            </div>
+            
+            <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-800 hover:border-purple-500 transition card-hover">
+                <div class="text-4xl mb-4">🎯</div>
+                <span class="px-3 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">Tips</span>
+                <h3 class="text-xl font-semibold mt-4 mb-2">How to Write Perfect AI Prompts</h3>
+                <p class="text-gray-400 text-sm mb-4">Master the art of prompt engineering with our complete guide...</p>
+                <a href="{{ url_for('blog') }}" class="text-purple-400 hover:text-purple-300 text-sm font-semibold">
+                    Read More →
+                </a>
+            </div>
+            
+            <div class="bg-[#0b0b0b] p-6 rounded-xl border border-gray-800 hover:border-green-500 transition card-hover">
+                <div class="text-4xl mb-4">📦</div>
+                <span class="px-3 py-1 bg-green-900/50 text-green-300 text-xs rounded">Feature</span>
+                <h3 class="text-xl font-semibold mt-4 mb-2">Introducing Prompt Bundles</h3>
+                <p class="text-gray-400 text-sm mb-4">Learn how to organize your prompts like a pro with our new feature...</p>
+                <a href="{{ url_for('blog') }}" class="text-green-400 hover:text-green-300 text-sm font-semibold">
+                    Read More →
+                </a>
+            </div>
         </div>
-        <div>
-            <div class="text-3xl font-bold text-pink-400 mb-2">∞</div>
-            <div class="text-gray-400">Unlimited on Premium</div>
-        </div>
-        <div>
-            <div class="text-3xl font-bold text-green-400 mb-2">₹499</div>
-            <div class="text-gray-400">One-time Payment</div>
+        
+        <div class="text-center mt-8 md:hidden">
+            <a href="{{ url_for('blog') }}" class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                View All Posts →
+            </a>
         </div>
     </div>
 </div>
+
 {% endblock %}
