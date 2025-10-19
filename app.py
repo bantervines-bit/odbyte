@@ -140,10 +140,16 @@ def new_prompt():
     user = User.query.get(session['user_id'])
     
     if request.method == 'POST':
-        if user.plan == 'free':
+        # Check prompt limit based on plan
+        if user.plan == 'silver':
             prompt_count = Prompt.query.filter_by(user_id=user.id).count()
             if prompt_count >= 10:
-                flash('Free plan limit reached! Upgrade to Premium for unlimited prompts.', 'error')
+                flash('Silver plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
+                return redirect(url_for('pricing'))
+        elif user.plan == 'diamond':
+            prompt_count = Prompt.query.filter_by(user_id=user.id).count()
+            if prompt_count >= 200:
+                flash('Monthly limit reached (200 prompts). Limit resets next month.', 'error')
                 return redirect(url_for('dashboard'))
         
         title = request.form.get('title')
@@ -152,7 +158,14 @@ def new_prompt():
         tags = request.form.get('tags')
         category = request.form.get('category')
         ai_model = request.form.get('ai_model')
-        visibility = request.form.get('visibility', 'private')
+        visibility = request.form.get('visibility', 'public')
+        
+        # IMPORTANT: Silver users can ONLY create public prompts
+        if user.plan == 'silver':
+            visibility = 'public'  # Force public for silver users
+        
+        # Diamond users can choose public or private
+        # (visibility already set from form for diamond users)
         
         new_prompt = Prompt(
             title=title,
@@ -168,10 +181,67 @@ def new_prompt():
         db.session.add(new_prompt)
         db.session.commit()
         
-        flash('Prompt saved successfully!', 'success')
+        if user.plan == 'silver':
+            flash(f'Prompt saved as public! ({prompt_count + 1}/10 Silver prompts used)', 'success')
+        else:
+            visibility_text = "private" if visibility == "private" else "public"
+            flash(f'Prompt saved as {visibility_text}! ({prompt_count + 1}/200 Diamond prompts used)', 'success')
+        
         return redirect(url_for('dashboard'))
     
     return render_template('new_prompt.html', user=user)
+
+@app.route('/prompt/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_prompt(id):
+    prompt = Prompt.query.get_or_404(id)
+    user = User.query.get(session['user_id'])
+    
+    if prompt.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        prompt.title = request.form.get('title')
+        prompt.description = request.form.get('description')
+        prompt.content = request.form.get('content')
+        prompt.tags = request.form.get('tags')
+        prompt.category = request.form.get('category')
+        prompt.ai_model = request.form.get('ai_model')
+        
+        visibility = request.form.get('visibility', 'public')
+        
+        # IMPORTANT: Silver users can ONLY have public prompts
+        if user.plan == 'silver':
+            prompt.visibility = 'public'  # Force public for silver users
+        else:
+            prompt.visibility = visibility  # Diamond users can choose
+        
+        db.session.commit()
+        flash('Prompt updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('edit_prompt.html', prompt=prompt, user=user)
+
+@app.route('/bulk-upload', methods=['GET', 'POST'])
+@login_required
+def bulk_upload():
+    user = User.query.get(session['user_id'])
+    
+    # Only Diamond users can access bulk upload
+    if user.plan != 'diamond':
+        flash('Bulk upload is a Diamond feature. Upgrade to access it!', 'error')
+        return redirect(url_for('pricing'))
+    
+    if request.method == 'POST':
+        # Get bulk data (could be textarea with JSON/CSV format)
+        bulk_data = request.form.get('bulk_data')
+        
+        # For now, just show coming soon message
+        flash('Bulk upload feature coming soon! We\'re working on it.', 'info')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('bulk_upload.html', user=user)
 
 @app.route('/prompt/<int:id>')
 def view_prompt(id):
@@ -187,30 +257,6 @@ def view_prompt(id):
         is_favorited = Favorite.query.filter_by(user_id=session['user_id'], prompt_id=id).first() is not None
     
     return render_template('view_prompt.html', prompt=prompt, is_favorited=is_favorited)
-
-@app.route('/prompt/<int:id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_prompt(id):
-    prompt = Prompt.query.get_or_404(id)
-    
-    if prompt.user_id != session['user_id']:
-        flash('Unauthorized access!', 'error')
-        return redirect(url_for('dashboard'))
-    
-    if request.method == 'POST':
-        prompt.title = request.form.get('title')
-        prompt.description = request.form.get('description')
-        prompt.content = request.form.get('content')
-        prompt.tags = request.form.get('tags')
-        prompt.category = request.form.get('category')
-        prompt.ai_model = request.form.get('ai_model')
-        prompt.visibility = request.form.get('visibility', 'private')
-        
-        db.session.commit()
-        flash('Prompt updated successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    
-    return render_template('edit_prompt.html', prompt=prompt)
 
 @app.route('/prompt/<int:id>/delete', methods=['POST'])
 @login_required
