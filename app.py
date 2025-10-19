@@ -5,6 +5,9 @@ from functools import wraps
 import os
 from datetime import datetime
 import razorpay
+import markdown
+import os
+from pathlib import Path
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -453,14 +456,90 @@ def newsletter_subscribe():
 
 @app.route('/blog')
 def blog():
-    # For now, empty posts list. You can add posts later in database
     posts = []
+    blog_dir = Path('blog_posts')
+    
+    # If folder doesn't exist, show empty
+    if not blog_dir.exists():
+        return render_template('blog.html', posts=[])
+    
+    # Read all .md files
+    for file in sorted(blog_dir.glob('*.md'), reverse=True):
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+                # Split metadata and content
+                if content.startswith('---'):
+                    parts = content.split('---', 2)
+                    if len(parts) >= 3:
+                        metadata_text = parts[1]
+                        post_content = parts[2]
+                        
+                        # Parse metadata
+                        metadata = {}
+                        for line in metadata_text.strip().split('\n'):
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                metadata[key.strip()] = value.strip()
+                        
+                        posts.append({
+                            'title': metadata.get('title', 'Untitled'),
+                            'slug': metadata.get('slug', ''),
+                            'date': metadata.get('date', ''),
+                            'author': metadata.get('author', 'ODByte Team'),
+                            'category': metadata.get('category', 'General'),
+                            'excerpt': metadata.get('excerpt', ''),
+                            'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
+                        })
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+            continue
+    
     return render_template('blog.html', posts=posts)
 
 @app.route('/blog/<slug>')
 def blog_post(slug):
-    # Sample structure - you'll add actual posts to database later
-    flash('Blog post coming soon!', 'info')
+    blog_dir = Path('blog_posts')
+    
+    if not blog_dir.exists():
+        flash('Blog post not found!', 'error')
+        return redirect(url_for('blog'))
+    
+    # Find post by slug
+    for file in blog_dir.glob('*.md'):
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+                if content.startswith('---'):
+                    parts = content.split('---', 2)
+                    if len(parts) >= 3:
+                        metadata_text = parts[1]
+                        post_content = parts[2]
+                        
+                        metadata = {}
+                        for line in metadata_text.strip().split('\n'):
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                metadata[key.strip()] = value.strip()
+                        
+                        if metadata.get('slug') == slug:
+                            post = {
+                                'title': metadata.get('title', 'Untitled'),
+                                'slug': metadata.get('slug', ''),
+                                'date': metadata.get('date', ''),
+                                'author': metadata.get('author', 'ODByte Team'),
+                                'category': metadata.get('category', 'General'),
+                                'excerpt': metadata.get('excerpt', ''),
+                                'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
+                            }
+                            return render_template('blog_post_template.html', post=post)
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+            continue
+    
+    flash('Blog post not found!', 'error')
     return redirect(url_for('blog'))
 
 if __name__ == '__main__':
