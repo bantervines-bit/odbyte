@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Upload - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-8">
+        <div class="text-6xl mb-4">💎</div>
+        <h1 class="text-4xl font-bold mb-4">Bulk Upload Prompts</h1>
+        <p class="text-xl text-gray-400">Diamond-exclusive feature</p>
+    </div>
+    
+    <div class="bg-[#1a1a1a] p-12 rounded-xl border border-gray-800 text-center">
+        <div class="text-8xl mb-6">🚧</div>
+        <h2 class="text-3xl font-bold mb-4">Coming Soon!</h2>
+        <p class="text-gray-300 mb-6">
+            We're building an amazing bulk upload feature. Upload multiple prompts at once via CSV, JSON, or text format.
+        </p>
+        <a href="{{ url_for('dashboard') }}" 
+           class="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
