@@ -227,7 +227,7 @@ def new_prompt():
         
         if user.plan == 'diamond':
             visibility_text = "private" if visibility == "private" else "public"
-            flash(f'Prompt saved as {visibility_text}! ({new_count}/200 Diamond prompts used)', 'success')
+           flash(f'Prompt saved as {visibility_text}! ({new_count}/200 Diamond prompts used)', 'success')
         else:
             flash(f'Prompt saved as public! ({new_count}/10 Silver prompts used)', 'success')
         
