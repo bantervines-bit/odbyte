@@ -229,9 +229,6 @@ def new_prompt():
         return redirect(url_for('dashboard'))
     
     return render_template('new_prompt.html', user=user)
-```
-
-**Key fix:** Moved `prompt_count = Prompt.query.filter_by(user_id=user.id).count()` to the TOP of the POST section so it's defined before being used.
 
 @app.route('/prompt/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
