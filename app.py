@@ -177,14 +177,15 @@ def new_prompt():
     user = User.query.get(session['user_id'])
     
     if request.method == 'POST':
+        # Get current prompt count BEFORE checking limit
+        prompt_count = Prompt.query.filter_by(user_id=user.id).count()
+        
         # Check prompt limit based on plan
         if user.plan == 'silver':
-            prompt_count = Prompt.query.filter_by(user_id=user.id).count()
             if prompt_count >= 10:
                 flash('Silver plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
                 return redirect(url_for('pricing'))
         elif user.plan == 'diamond':
-            prompt_count = Prompt.query.filter_by(user_id=user.id).count()
             if prompt_count >= 200:
                 flash('Monthly limit reached (200 prompts). Limit resets next month.', 'error')
                 return redirect(url_for('dashboard'))
@@ -218,6 +219,7 @@ def new_prompt():
         db.session.add(new_prompt)
         db.session.commit()
         
+        # Show success message with count
         if user.plan == 'silver':
             flash(f'Prompt saved as public! ({prompt_count + 1}/10 Silver prompts used)', 'success')
         else:
@@ -227,6 +229,9 @@ def new_prompt():
         return redirect(url_for('dashboard'))
     
     return render_template('new_prompt.html', user=user)
+```
+
+**Key fix:** Moved `prompt_count = Prompt.query.filter_by(user_id=user.id).count()` to the TOP of the POST section so it's defined before being used.
 
 @app.route('/prompt/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
