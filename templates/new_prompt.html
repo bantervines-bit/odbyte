@@ -6,12 +6,12 @@
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <h1 class="text-4xl font-bold mb-8">Create New Prompt</h1>
     
-    <!-- Plan Info Banner -->
-    {% if user.plan == 'silver' %}
+    <!-- Plan Info Banner for Silver Users -->
+    {% if user.plan != 'diamond' %}
     <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
         <p class="text-gray-300 text-sm">
             🥈 <strong>Silver Plan:</strong> You can only create public prompts. 
-            <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300">Upgrade to Diamond</a> to create private prompts.
+            <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300 underline">Upgrade to Diamond</a> to create private prompts.
         </p>
     </div>
     {% endif %}
@@ -83,30 +83,60 @@
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
                 
-                {% if user.plan == 'silver' %}
-                    <!-- Silver users: Only public option -->
+                {% if user.plan != 'diamond' %}
+                    <!-- Silver/Free users: Only public option (disabled UI) -->
                     <div class="bg-[#0b0b0b] p-4 rounded-lg border border-gray-700">
-                        <label class="flex items-center cursor-not-allowed">
-                            <input type="radio" name="visibility" value="public" checked disabled class="mr-2">
-                            <span class="text-gray-300">Public (Share with community)</span>
-                        </label>
-                        <p class="text-xs text-gray-500 mt-2">
-                            Silver users can only create public prompts. 
-                            <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300">Upgrade to Diamond</a> for private prompts.
+                        <div class="flex items-start gap-3 mb-3">
+                            <input type="radio" checked disabled class="mt-1">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-gray-300">🌍 Public</span>
+                                    <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs rounded">Required</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Share with the community</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3 opacity-50">
+                            <input type="radio" disabled class="mt-1">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-gray-400">🔒 Private</span>
+                                    <span class="px-2 py-0.5 bg-purple-900/50 text-purple-400 text-xs rounded">💎 Diamond Only</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Only you can see</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-700">
+                            <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300 underline font-semibold">Upgrade to Diamond</a> to create private prompts
                         </p>
                     </div>
+                    <!-- Hidden input to ensure public is sent -->
                     <input type="hidden" name="visibility" value="public">
                     
                 {% else %}
-                    <!-- Diamond users: Both options -->
-                    <div class="flex gap-4">
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="visibility" value="private" checked class="mr-2">
-                            <span class="text-gray-300">🔒 Private (Only you)</span>
+                    <!-- Diamond users: Both options available -->
+                    <div class="space-y-3">
+                        <label class="flex items-start gap-3 p-4 bg-[#0b0b0b] rounded-lg border border-gray-700 cursor-pointer hover:border-purple-500 transition">
+                            <input type="radio" name="visibility" value="private" checked class="mt-1">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-gray-300 font-medium">🔒 Private</span>
+                                    <span class="px-2 py-0.5 bg-purple-900/50 text-purple-400 text-xs rounded">Recommended</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Only you can see this prompt</p>
+                            </div>
                         </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="visibility" value="public" class="mr-2">
-                            <span class="text-gray-300">🌍 Public (Share with community)</span>
+                        
+                        <label class="flex items-start gap-3 p-4 bg-[#0b0b0b] rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                            <input type="radio" name="visibility" value="public" class="mt-1">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-gray-300 font-medium">🌍 Public</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Share with the ODByte community</p>
+                            </div>
                         </label>
                     </div>
                 {% endif %}
