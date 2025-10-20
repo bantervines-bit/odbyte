@@ -177,18 +177,23 @@ def new_prompt():
     user = User.query.get(session['user_id'])
     
     if request.method == 'POST':
-        # Get current prompt count BEFORE checking limit
-        prompt_count = Prompt.query.filter_by(user_id=user.id).count()
+        # Get current prompt count FIRST (before any checks)
+        current_prompt_count = Prompt.query.filter_by(user_id=user.id).count()
         
         # Check prompt limit based on plan
         if user.plan == 'silver':
-            if prompt_count >= 10:
+            if current_prompt_count >= 10:
                 flash('Silver plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
                 return redirect(url_for('pricing'))
         elif user.plan == 'diamond':
-            if prompt_count >= 200:
+            if current_prompt_count >= 200:
                 flash('Monthly limit reached (200 prompts). Limit resets next month.', 'error')
                 return redirect(url_for('dashboard'))
+        else:
+            # Default to silver limits for any other plan value
+            if current_prompt_count >= 10:
+                flash('Free plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
+                return redirect(url_for('pricing'))
         
         title = request.form.get('title')
         description = request.form.get('description')
@@ -198,14 +203,12 @@ def new_prompt():
         ai_model = request.form.get('ai_model')
         visibility = request.form.get('visibility', 'public')
         
-        # IMPORTANT: Silver users can ONLY create public prompts
-        if user.plan == 'silver':
-            visibility = 'public'  # Force public for silver users
+        # CRITICAL: Silver/Free users can ONLY create public prompts
+        if user.plan != 'diamond':
+            visibility = 'public'  # Force public for non-diamond users
         
-        # Diamond users can choose public or private
-        # (visibility already set from form for diamond users)
-        
-        new_prompt = Prompt(
+        # Create the prompt
+        new_prompt_obj = Prompt(
             title=title,
             description=description,
             content=content,
@@ -216,15 +219,17 @@ def new_prompt():
             user_id=user.id
         )
         
-        db.session.add(new_prompt)
+        db.session.add(new_prompt_obj)
         db.session.commit()
         
         # Show success message with count
-        if user.plan == 'silver':
-            flash(f'Prompt saved as public! ({prompt_count + 1}/10 Silver prompts used)', 'success')
-        else:
+        new_count = current_prompt_count + 1
+        
+        if user.plan == 'diamond':
             visibility_text = "private" if visibility == "private" else "public"
-            flash(f'Prompt saved as {visibility_text}! ({prompt_count + 1}/200 Diamond prompts used)', 'success')
+            flash(f'Prompt saved as {visibility_text}! ({new_count}/200 Diamond prompts used)', 'success')
+        else:
+            flash(f'Prompt saved as public! ({new_count}/10 Silver prompts used)', 'success')
         
         return redirect(url_for('dashboard'))
     
