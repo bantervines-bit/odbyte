@@ -91,29 +91,58 @@
 <div class="mt-12">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">My Bundles</h2>
-        <a href="{{ url_for('new_bundle') }}" 
-           class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
-            📦 New Bundle
+        {% if bundles %}
+        <a href="{{ url_for('bundles') }}" 
+           class="text-blue-400 hover:text-blue-300 text-sm font-semibold">
+            View All Bundles →
         </a>
+        {% endif %}
     </div>
     
-    {% set user_bundles = [] %}
-    {% if user.id %}
-        <!-- This will be populated by backend -->
-    {% endif %}
-    
-    <div class="text-center py-8 bg-[#1a1a1a] rounded-xl border border-gray-800">
-        <p class="text-gray-400 mb-4">
+    {% if bundles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for bundle in bundles %}
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition">
+            <div class="flex justify-between items-start mb-3">
+                <h3 class="text-lg font-semibold text-blue-400 truncate">{{ bundle.title }}</h3>
+                <span class="px-2 py-1 bg-purple-900/50 text-purple-400 text-xs rounded flex-shrink-0 ml-2">
+                    🔒 Private
+                </span>
+            </div>
+            
+            <p class="text-gray-400 text-sm mb-4 line-clamp-2">
+                {{ bundle.description or 'No description' }}
+            </p>
+            
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                <span>📄 {{ bundle.get_prompts()|length }} prompts</span>
+                <span>•</span>
+                <span>{{ bundle.created_at.strftime('%b %d') }}</span>
+            </div>
+            
+            <a href="{{ url_for('view_bundle', bundle_id=bundle.id) }}" 
+               class="inline-block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+                View Bundle
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 p-8 text-center">
+        <div class="text-5xl mb-4">📦</div>
+        <h3 class="text-xl font-semibold mb-2">No Bundles Yet</h3>
+        <p class="text-gray-400 mb-6">
             {% if user.plan == 'diamond' %}
                 Create up to 30 bundles per month to organize your prompts
             {% else %}
-                Create up to 3 bundles per month (Free plan)
+                Create up to 3 bundles per month with your Free plan
             {% endif %}
         </p>
         <a href="{{ url_for('new_bundle') }}" 
            class="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
-            Create Your First Bundle
+            📦 Create Your First Bundle
         </a>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
