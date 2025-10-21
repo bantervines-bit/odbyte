@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Bundle - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-8">Edit Bundle</h1>
+
+    <form method="POST" action="{{ url_for('edit_bundle', bundle_id=bundle.id) }}" class="space-y-6">
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Bundle Title *</label>
+                    <input type="text" name="title" required value="{{ bundle.title }}"
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition"
+                           placeholder="E.g., Marketing Templates">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea name="description" rows="3"
+                              class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition"
+                              placeholder="Describe what this bundle contains...">{{ bundle.description }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
+            <h2 class="text-xl font-semibold mb-4">Select Prompts</h2>
+            
+            {% if not prompts %}
+            <div class="text-center py-8 bg-[#0b0b0b] rounded-lg border border-gray-700">
+                <p class="text-gray-400 mb-4">You don't have any prompts yet!</p>
+                <a href="{{ url_for('new_prompt') }}" 
+                   class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                    Create Your First Prompt
+                </a>
+            </div>
+            {% else %}
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% for prompt in prompts %}
+                <label class="flex items-start gap-4 p-4 bg-[#0b0b0b] rounded-lg border border-gray-700 cursor-pointer hover:border-blue-500 transition">
+                    <input type="checkbox" name="prompts" value="{{ prompt.id }}" 
+                           {% if prompt.id in current_prompt_ids %}checked{% endif %}
+                           class="mt-1 w-5 h-5 rounded border-gray-600 text-blue-600 focus:ring-blue-500">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="font-semibold text-white">{{ prompt.title }}</h3>
+                            {% if prompt.visibility == 'private' %}
+                            <span class="px-2 py-0.5 bg-purple-900/50 text-purple-400 text-xs rounded">Private</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs rounded">Public</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-sm text-gray-400">{{ prompt.description }}</p>
+                        <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                            {% if prompt.category %}
+                            <span class="px-2 py-1 bg-gray-800 rounded">{{ prompt.category }}</span>
+                            {% endif %}
+                            {% if prompt.ai_model %}
+                            <span class="px-2 py-1 bg-gray-800 rounded">{{ prompt.ai_model }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit" 
+                    class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+                Update Bundle
+            </button>
+            <a href="{{ url_for('view_bundle', bundle_id=bundle.id) }}" 
+               class="px-6 py-3 bg-gray-700 hover:bg-gray
