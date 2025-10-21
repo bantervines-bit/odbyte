@@ -15,19 +15,24 @@
         </p>
     </div>
     
-    <div class="flex flex-wrap gap-4 mb-8">
-        <a href="{{ url_for('new_prompt') }}" 
-           class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
-            + New Prompt
-        </a>
-        
-        {% if user.plan == 'free' %}
-            <a href="{{ url_for('upgrade') }}" 
-               class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg font-semibold hover:opacity-90 transition">
-                ⭐ Upgrade to Premium
-            </a>
-        {% endif %}
-    </div>
+   <div class="flex gap-4">
+    <a href="{{ url_for('new_prompt') }}" 
+       class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+        ✨ Create Prompt
+    </a>
+    
+    <a href="{{ url_for('new_bundle') }}" 
+       class="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+        📦 Create Bundle
+    </a>
+    
+    {% if user.plan != 'diamond' %}
+    <a href="{{ url_for('pricing') }}" 
+       class="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+        💎 Upgrade to Diamond
+    </a>
+    {% endif %}
+</div>
     
     {% if prompts %}
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
