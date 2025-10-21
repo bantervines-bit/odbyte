@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}{{ bundle.title }} - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+        <div class="flex items-center gap-2 text-gray-400 text-sm mb-4">
+            <a href="{{ url_for('bundles') }}" class="hover:text-blue-400">My Bundles</a>
+            <span>/</span>
+            <span>{{ bundle.title }}</span>
+        </div>
+        
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">{{ bundle.title }}</h1>
+                <p class="text-gray-400">{{ bundle.description or 'No description' }}</p>
+            </div>
+            <span class="px-4 py-2 bg-purple-900/50 text-purple-400 rounded-full">
+                🔒 Private Bundle
+            </span>
+        </div>
+        
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+            <span>📄 {{ prompts|length }} prompts</span>
+            <span>•</span>
+            <span>Created {{ bundle.created_at.strftime('%B %d, %Y') }}</span>
+        </div>
+    </div>
+
+    <!-- Share Link -->
+    <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-6 mb-8">
+        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            🔗 Share This Bundle
+        </h3>
+        <p class="text-gray-300 text-sm mb-4">
+            Anyone with this link can view the prompts in this bundle
+        </p>
+        <div class="flex gap-2">
+            <input type="text" readonly value="{{ share_link }}" id="shareLink"
+                   class="flex-1 px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white text-sm">
+            <button onclick="copyLink()" id="copyBtn"
+                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                Copy Link
+            </button>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 mb-8">
+        <a href="{{ url_for('edit_bundle', bundle_id=bundle.id) }}" 
+           class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+            ✏️ Edit Bundle
+        </a>
+        <form method="POST" action="{{ url_for('delete_bundle', bundle_id=bundle.id) }}" 
+              onsubmit="return confirm('Delete this bundle? This cannot be undone.');" class="inline">
+            <button type="submit" 
+                    class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition">
+                🗑️ Delete Bundle
+            </button>
+        </form>
+    </div>
+
+    <!-- Prompts in Bundle -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-bold mb-4">Prompts in this Bundle</h2>
+        
+        {% if not prompts %}
+        <div class="text-center py-12 bg-[#1a1a1a] rounded-xl border border-gray-800">
+            <p class="text-gray-400 mb-4">No prompts in this bundle yet</p>
+            <a href="{{ url_for('edit_bundle', bundle_id=bundle.id) }}" 
+               class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                Add Prompts
+            </a>
+        </div>
+        {% else %}
+        {% for prompt in prompts %}
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition">
+            <div class="flex justify-between items-start mb-3">
+                <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
+                <div class="flex gap-2">
+                    {% if prompt.visibility == 'private' %}
+                    <span class="px-3 py-1 bg-purple-900/50 text-purple-400 text-sm rounded-full">Private</span>
+                    {% else %}
+                    <span class="px-3 py-1 bg-green-900/50 text-green-400 text-sm rounded-full">Public</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="text-gray-300 mb-4">{{ prompt.description }}</p>
+            
+            <div class="flex items-center gap-3 text-sm text-gray-500 mb-4">
+                {% if prompt.category %}
+                <span class="px-3 py-1 bg-gray-800 rounded">{{ prompt.category }}</span>
+                {% endif %}
+                {% if prompt.ai_model %}
+                <span class="px-3 py-1 bg-gray-800 rounded">{{ prompt.ai_model }}</span>
+                {% endif %}
+                {% if prompt.tags %}
+                <span>🏷️ {{ prompt.tags }}</span>
+                {% endif %}
+            </div>
+            
+            <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+               class="text-blue-400 hover:text-blue-300 text-sm font-semibold">
+                View Full Prompt →
+            </a>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyLink() {
+    const linkInput = document.getElementById('shareLink');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    
+    navigator.clipboard.writeText(linkInput.value).then(function() {
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '✓ Copied!';
+        copyBtn.classList.add('bg-green-600');
+        copyBtn.classList.remove('bg-blue-600');
+        
+        setTimeout(function() {
+            copyBtn.textContent = originalText;
+            copyBtn.classList.remove('bg-green-600');
+            copyBtn.classList.add('bg-blue-600');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}
