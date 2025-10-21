@@ -8,6 +8,7 @@ import razorpay
 import markdown
 import os
 from pathlib import Path
+import secrets
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -65,6 +66,35 @@ class Payment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class PromptBundle(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    unique_link = db.Column(db.String(100), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    prompt_ids = db.Column(db.Text)
+
+    def get_prompts(self):
+        if not self.prompt_ids:
+            return []
+        ids = [int(id.strip()) for id in self.prompt_ids.split(',') if id.strip()]
+        return Prompt.query.filter(Prompt.id.in_(ids)).all()
+    
+    def add_prompt(self, prompt_id):
+        if not self.prompt_ids:
+            self.prompt_ids = str(prompt_id)
+        else:
+            ids = self.prompt_ids.split(',')
+            if str(prompt_id) not in ids:
+                ids.append(str(prompt_id))
+                self.prompt_ids = ','.join(ids)
+    
+    def remove_prompt(self, prompt_id):
+        if self.prompt_ids:
+            ids = [id for id in self.prompt_ids.split(',') if id.strip() != str(prompt_id)]
+            self.prompt_ids = ','.join(ids)
+    
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -74,6 +104,10 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def generate_bundle_link():
+    """Generate a unique random link for bundles"""
+    return secrets.token_urlsafe(16)
+    
 @app.route('/')
 def index():
     # Get 6 most recent public prompts for homepage
