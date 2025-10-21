@@ -42,7 +42,7 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Category</label>
-                    <select name="category" 
+                    <select name="category" id="categorySelect"
                             class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
                         <option value="">Select category</option>
                         <option value="Writing">Writing</option>
@@ -54,11 +54,15 @@
                         <option value="Creative">Creative</option>
                         <option value="Other">Other</option>
                     </select>
+                    <!-- Custom Category Input (Hidden by default) -->
+                    <input type="text" name="custom_category" id="customCategory"
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition mt-2 hidden"
+                           placeholder="Enter custom category">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">AI Model</label>
-                    <select name="ai_model" 
+                    <select name="ai_model" id="aiModelSelect"
                             class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition">
                         <option value="">Select model</option>
                         <option value="ChatGPT">ChatGPT</option>
@@ -69,6 +73,10 @@
                         <option value="Stable Diffusion">Stable Diffusion</option>
                         <option value="Other">Other</option>
                     </select>
+                    <!-- Custom AI Model Input (Hidden by default) -->
+                    <input type="text" name="custom_ai_model" id="customAiModel"
+                           class="w-full px-4 py-3 bg-[#0b0b0b] border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:outline-none transition mt-2 hidden"
+                           placeholder="Enter custom AI model">
                 </div>
             </div>
             
@@ -174,4 +182,32 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+// Show custom input when "Other" is selected for Category
+document.getElementById('categorySelect').addEventListener('change', function() {
+    const customInput = document.getElementById('customCategory');
+    if (this.value === 'Other') {
+        customInput.classList.remove('hidden');
+        customInput.required = true;
+    } else {
+        customInput.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+    }
+});
+
+// Show custom input when "Other" is selected for AI Model
+document.getElementById('aiModelSelect').addEventListener('change', function() {
+    const customInput = document.getElementById('customAiModel');
+    if (this.value === 'Other') {
+        customInput.classList.remove('hidden');
+        customInput.required = true;
+    } else {
+        customInput.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+    }
+});
+</script>
 {% endblock %}
