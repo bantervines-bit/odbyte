@@ -233,8 +233,17 @@ def new_prompt():
         description = request.form.get('description')
         content = request.form.get('content')
         tags = request.form.get('tags')
+        
+        # Handle custom category
         category = request.form.get('category')
+        if category == 'Other':
+            category = request.form.get('custom_category', 'Other')
+        
+        # Handle custom AI model
         ai_model = request.form.get('ai_model')
+        if ai_model == 'Other':
+            ai_model = request.form.get('custom_ai_model', 'Other')
+        
         visibility = request.form.get('visibility', 'public')
         
         # CRITICAL: Silver/Free users can ONLY create public prompts
@@ -616,6 +625,120 @@ def blog_post(slug):
     
     flash('Blog post not found!', 'error')
     return redirect(url_for('blog'))
+# Bundle Routes
+@app.route('/bundles')
+@login_required
+def bundles():
+    user = User.query.get(session['user_id'])
+    user_bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).all()
+    
+    bundle_count = len(user_bundles)
+    max_bundles = 30 if user.plan == 'diamond' else 3
+    
+    return render_template('bundles.html', user=user, bundles=user_bundles, 
+                         bundle_count=bundle_count, max_bundles=max_bundles)
+
+@app.route('/bundle/new', methods=['GET', 'POST'])
+@login_required
+def new_bundle():
+    user = User.query.get(session['user_id'])
+    
+    current_bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
+    max_bundles = 30 if user.plan == 'diamond' else 3
+    
+    if current_bundle_count >= max_bundles:
+        plan_name = "Diamond" if user.plan == 'diamond' else "Free"
+        flash(f'{plan_name} plan limit reached! You can create {max_bundles} bundles per month.', 'error')
+        return redirect(url_for('bundles'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        selected_prompts = request.form.getlist('prompts')
+        
+        new_bundle = PromptBundle(
+            title=title,
+            description=description,
+            unique_link=generate_bundle_link(),
+            user_id=user.id,
+            prompt_ids=','.join(selected_prompts) if selected_prompts else ''
+        )
+        
+        db.session.add(new_bundle)
+        db.session.commit()
+        
+        flash(f'Bundle created successfully! ({current_bundle_count + 1}/{max_bundles} bundles used)', 'success')
+        return redirect(url_for('view_bundle', bundle_id=new_bundle.id))
+    
+    user_prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
+    
+    return render_template('new_bundle.html', user=user, prompts=user_prompts, 
+                         bundle_count=current_bundle_count, max_bundles=max_bundles)
+
+@app.route('/bundle/<int:bundle_id>')
+@login_required
+def view_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    user = User.query.get(session['user_id'])
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+    
+    prompts = bundle.get_prompts()
+    share_link = url_for('view_shared_bundle', link=bundle.unique_link, _external=True)
+    
+    return render_template('view_bundle.html', bundle=bundle, prompts=prompts, 
+                         user=user, share_link=share_link)
+
+@app.route('/b/<link>')
+def view_shared_bundle(link):
+    """Public route to view shared bundles"""
+    bundle = PromptBundle.query.filter_by(unique_link=link).first_or_404()
+    prompts = bundle.get_prompts()
+    author = User.query.get(bundle.user_id)
+    
+    return render_template('shared_bundle.html', bundle=bundle, prompts=prompts, author=author)
+
+@app.route('/bundle/<int:bundle_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    user = User.query.get(session['user_id'])
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+    
+    if request.method == 'POST':
+        bundle.title = request.form.get('title')
+        bundle.description = request.form.get('description')
+        selected_prompts = request.form.getlist('prompts')
+        bundle.prompt_ids = ','.join(selected_prompts) if selected_prompts else ''
+        
+        db.session.commit()
+        flash('Bundle updated successfully!', 'success')
+        return redirect(url_for('view_bundle', bundle_id=bundle.id))
+    
+    user_prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
+    current_prompt_ids = [int(id) for id in bundle.prompt_ids.split(',') if id]
+    
+    return render_template('edit_bundle.html', bundle=bundle, prompts=user_prompts, 
+                         current_prompt_ids=current_prompt_ids, user=user)
+
+@app.route('/bundle/<int:bundle_id>/delete', methods=['POST'])
+@login_required
+def delete_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+    
+    db.session.delete(bundle)
+    db.session.commit()
+    flash('Bundle deleted successfully!', 'success')
+    return redirect(url_for('bundles'))
 
 if __name__ == '__main__':
     app.run(debug=True)
