@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}My Bundles - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-4xl font-bold mb-2">My Prompt Bundles</h1>
+            <p class="text-gray-400">
+                {% if user.plan == 'diamond' %}
+                    💎 Diamond: {{ bundle_count }}/{{ max_bundles }} bundles used
+                {% else %}
+                    🆓 Free: {{ bundle_count }}/{{ max_bundles }} bundles used
+                {% endif %}
+            </p>
+        </div>
+        <a href="{{ url_for('new_bundle') }}" 
+           class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+            📦 Create Bundle
+        </a>
+    </div>
+
+    {% if not bundles %}
+    <div class="text-center py-16 bg-[#1a1a1a] rounded-xl border border-gray-800">
+        <div class="text-6xl mb-4">📦</div>
+        <h3 class="text-2xl font-semibold mb-2">No Bundles Yet</h3>
+        <p class="text-gray-400 mb-6">Create your first prompt bundle to organize and share multiple prompts</p>
+        <a href="{{ url_for('new_bundle') }}" 
+           class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+            Create Your First Bundle
+        </a>
+    </div>
+    {% else %}
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for bundle in bundles %}
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-semibold text-blue-400">{{ bundle.title }}</h3>
+                <span class="px-3 py-1 bg-purple-900/50 text-purple-400 text-sm rounded-full">
+                    🔒 Private
+                </span>
+            </div>
+            
+            <p class="text-gray-400 text-sm mb-4">{{ bundle.description or 'No description' }}</p>
+            
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                <span>📄 {{ bundle.get_prompts()|length }} prompts</span>
+                <span>•</span>
+                <span>{{ bundle.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+            
+            <div class="flex gap-2">
+                <a href="{{ url_for('view_bundle', bundle_id=bundle.id) }}" 
+                   class="flex-1 text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+                    View
+                </a>
+                <a href="{{ url_for('edit_bundle', bundle_id=bundle.id) }}" 
+                   class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-semibold transition">
+                    Edit
+                </a>
+                <form method="POST" action="{{ url_for('delete_bundle', bundle_id=bundle.id) }}" 
+                      onsubmit="return confirm('Delete this bundle? This cannot be undone.');" class="inline">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upgrade prompt for free users -->
+    {% if user.plan != 'diamond' and bundle_count >= max_bundles %}
+    <div class="mt-8 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-6">
+        <div class="flex items-start gap-4">
+            <div class="text-4xl">💎</div>
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-2 text-blue-400">Upgrade to Diamond</h3>
+                <p class="text-gray-300 mb-4">
+                    Create up to 30 bundles per month and organize your prompts like a pro!
+                </p>
+                <a href="{{ url_for('pricing') }}" 
+                   class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+                    Upgrade Now →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
