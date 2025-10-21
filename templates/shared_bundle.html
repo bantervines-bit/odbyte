@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ bundle.title }} - Shared Bundle{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Bundle Header -->
+    <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-8 mb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="text-4xl">📦</span>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Shared Bundle by {{ author.name }}</p>
+                <h1 class="text-3xl font-bold">{{ bundle.title }}</h1>
+            </div>
+        </div>
+        
+        {% if bundle.description %}
+        <p class="text-gray-300 mb-4">{{ bundle.description }}</p>
+        {% endif %}
+        
+        <div class="flex items-center gap-4 text-sm text-gray-400">
+            <span>📄 {{ prompts|length }} prompts</span>
+            <span>•</span>
+            <span>Shared on {{ bundle.created_at.strftime('%B %d, %Y') }}</span>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6 mb-8 text-center">
+        <h3 class="text-xl font-semibold mb-2">💡 Want to create your own prompt bundles?</h3>
+        <p class="text-gray-400 mb-4">Join ODByte to organize and share your AI prompts</p>
+        <div class="flex gap-3 justify-center">
+            <a href="{{ url_for('signup') }}" 
+               class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+                Sign Up Free
+            </a>
+            <a href="{{ url_for('login') }}" 
+               class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition">
+                Login
+            </a>
+        </div>
+    </div>
+
+    <!-- Prompts in Bundle -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-bold mb-4">Prompts in this Bundle</h2>
+        
+        {% if not prompts %}
+        <div class="text-center py-12 bg-[#1a1a1a] rounded-xl border border-gray-800">
+            <p class="text-gray-400">This bundle is empty</p>
+        </div>
+        {% else %}
+        {% for prompt in prompts %}
+        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+            <div class="flex justify-between items-start mb-3">
+                <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
+                <div class="flex gap-2">
+                    {% if prompt.category %}
+                    <span class="px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded">{{ prompt.category }}</span>
+                    {% endif %}
+                    {% if prompt.ai_model %}
+                    <span class="px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded">{{ prompt.ai_model }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="text-gray-300 mb-4">{{ prompt.description }}</p>
+            
+            <div class="bg-[#0b0b0b] p-4 rounded-lg border border-gray-700 mb-4">
+                <pre class="text-sm text-gray-300 whitespace-pre-wrap font-mono">{{ prompt.content }}</pre>
+            </div>
+            
+            {% if prompt.tags %}
+            <div class="flex items-center gap-2 text-sm mb-4">
+                <span class="text-gray-500">🏷️ Tags:</span>
+                {% for tag in prompt.tags.split(',') %}
+                <span class="px-2 py-1 bg-gray-800 text-gray-400 rounded text-xs">{{ tag.strip() }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="mt-4 pt-4 border-t border-gray-800">
+                <button onclick="copyPrompt{{ loop.index }}()" id="copyBtn{{ loop.index }}"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+                    📋 Copy Prompt
+                </button>
+            </div>
+            
+            <script>
+            function copyPrompt{{ loop.index }}() {
+                const text = `{{ prompt.content|replace('\n', '\\n')|replace('"', '\\"')|replace("'", "\\'")|safe }}`;
+                const btn = document.getElementById('copyBtn{{ loop.index }}');
+                
+                navigator.clipboard.writeText(text).then(function() {
+                    const originalText = btn.textContent;
+                    btn.textContent = '✓ Copied!';
+                    btn.classList.add('bg-green-600');
+                    btn.classList.remove('bg-blue-600');
+                    
+                    setTimeout(function() {
+                        btn.textContent = originalText;
+                        btn.classList.remove('bg-green-600');
+                        btn.classList.add('bg-blue-600');
+                    }, 2000);
+                });
+            }
+            </script>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="mt-8 text-center">
+        <p class="text-gray-400 mb-4">Want to save these prompts to your library?</p>
+        <a href="{{ url_for('signup') }}" 
+           class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow text-lg">
+            Create Free Account
+        </a>
+    </div>
+</div>
+{% endblock %}
