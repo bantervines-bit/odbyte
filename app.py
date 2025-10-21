@@ -203,7 +203,13 @@ def dashboard():
     
     prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
     prompt_count = len(prompts)
-    return render_template('dashboard.html', user=user, prompts=prompts, prompt_count=prompt_count)
+    
+    # Get user's bundles
+    bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).limit(5).all()
+    bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
+    
+    return render_template('dashboard.html', user=user, prompts=prompts, 
+                         prompt_count=prompt_count, bundles=bundles, bundle_count=bundle_count)
 
 @app.route('/prompt/new', methods=['GET', 'POST'])
 @login_required
