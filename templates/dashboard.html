@@ -3,8 +3,7 @@
 {% block title %}Dashboard - ODByte{% endblock %}
 
 {% block content %}
-<!-- My Bundles Section -->
-<div class="mt-12" style="max-width: 100%; box-sizing: border-box;">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="mb-8">
         <h1 class="text-4xl font-bold mb-2">Welcome, {{ user.name }}! 👋</h1>
         <p class="text-gray-400">
@@ -16,134 +15,141 @@
         </p>
     </div>
     
-   <div class="flex gap-4">
-    <a href="{{ url_for('new_prompt') }}" 
-       class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
-        ✨ Create Prompt
-    </a>
-    
-    <a href="{{ url_for('new_bundle') }}" 
-       class="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg font-semibold hover:opacity-90 transition glow">
-        📦 Create Bundle
-    </a>
-    
-    {% if user.plan != 'diamond' %}
-    <a href="{{ url_for('pricing') }}" 
-       class="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold hover:opacity-90 transition glow">
-        💎 Upgrade to Diamond
-    </a>
-    {% endif %}
-</div>
-    
-    {% if prompts %}
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for prompt in prompts %}
-                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
-                        <span class="px-2 py-1 text-xs rounded {% if prompt.visibility == 'public' %}bg-green-900/50 text-green-400{% else %}bg-gray-800 text-gray-400{% endif %}">
-                            {{ prompt.visibility }}
-                        </span>
-                    </div>
-                    
-                    <p class="text-gray-400 text-sm mb-4 line-clamp-2">{{ prompt.description }}</p>
-                    
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        {% if prompt.category %}
-                            <span class="px-2 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">{{ prompt.category }}</span>
-                        {% endif %}
-                        {% if prompt.ai_model %}
-                            <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">{{ prompt.ai_model }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
-                           class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-center transition">
-                            View
-                        </a>
-                        <a href="{{ url_for('edit_prompt', id=prompt.id) }}" 
-                           class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition">
-                            Edit
-                        </a>
-                        <form method="POST" action="{{ url_for('delete_prompt', id=prompt.id) }}" class="inline">
-                            <button type="submit" onclick="return confirm('Delete this prompt?')"
-                                    class="px-4 py-2 bg-red-900/50 hover:bg-red-900 rounded-lg text-sm transition">
-                                Delete
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="text-center py-20">
-            <div class="text-6xl mb-4">📝</div>
-            <h3 class="text-2xl font-semibold mb-2 text-gray-300">No prompts yet</h3>
-            <p class="text-gray-400 mb-6">Create your first prompt to get started!</p>
-            <a href="{{ url_for('new_prompt') }}" 
-               class="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition">
-                Create First Prompt
-            </a>
-        </div>
-    {% endif %}
-</div>
-<!-- My Bundles Section -->
-<div class="mt-12">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">My Bundles</h2>
-        {% if bundles %}
-        <a href="{{ url_for('bundles') }}" 
-           class="text-blue-400 hover:text-blue-300 text-sm font-semibold">
-            View All Bundles →
+    <div class="flex gap-4 mb-8">
+        <a href="{{ url_for('new_prompt') }}" 
+           class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+            ✨ Create Prompt
+        </a>
+        
+        <a href="{{ url_for('new_bundle') }}" 
+           class="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+            📦 Create Bundle
+        </a>
+        
+        {% if user.plan != 'diamond' %}
+        <a href="{{ url_for('pricing') }}" 
+           class="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold hover:opacity-90 transition glow">
+            💎 Upgrade to Diamond
         </a>
         {% endif %}
     </div>
     
-    {% if bundles %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for bundle in bundles %}
-        <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition">
-            <div class="flex justify-between items-start mb-3">
-                <h3 class="text-lg font-semibold text-blue-400 truncate">{{ bundle.title }}</h3>
-                <span class="px-2 py-1 bg-purple-900/50 text-purple-400 text-xs rounded flex-shrink-0 ml-2">
-                    🔒 Private
-                </span>
+    <!-- My Prompts Section -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">My Prompts</h2>
+        
+        {% if prompts %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for prompt in prompts %}
+                    <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
+                            <span class="px-2 py-1 text-xs rounded {% if prompt.visibility == 'public' %}bg-green-900/50 text-green-400{% else %}bg-gray-800 text-gray-400{% endif %}">
+                                {{ prompt.visibility }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-gray-400 text-sm mb-4 line-clamp-2">{{ prompt.description }}</p>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% if prompt.category %}
+                                <span class="px-2 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">{{ prompt.category }}</span>
+                            {% endif %}
+                            {% if prompt.ai_model %}
+                                <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">{{ prompt.ai_model }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+                               class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-center transition">
+                                View
+                            </a>
+                            <a href="{{ url_for('edit_prompt', id=prompt.id) }}" 
+                               class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition">
+                                Edit
+                            </a>
+                            <form method="POST" action="{{ url_for('delete_prompt', id=prompt.id) }}" class="inline">
+                                <button type="submit" onclick="return confirm('Delete this prompt?')"
+                                        class="px-4 py-2 bg-red-900/50 hover:bg-red-900 rounded-lg text-sm transition">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-            
-            <p class="text-gray-400 text-sm mb-4 line-clamp-2">
-                {{ bundle.description or 'No description' }}
+        {% else %}
+            <div class="text-center py-20">
+                <div class="text-6xl mb-4">📝</div>
+                <h3 class="text-2xl font-semibold mb-2 text-gray-300">No prompts yet</h3>
+                <p class="text-gray-400 mb-6">Create your first prompt to get started!</p>
+                <a href="{{ url_for('new_prompt') }}" 
+                   class="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 transition">
+                    Create First Prompt
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- My Bundles Section -->
+    <div class="mb-12">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">My Bundles</h2>
+            {% if bundles %}
+            <a href="{{ url_for('bundles') }}" 
+               class="text-blue-400 hover:text-blue-300 text-sm font-semibold">
+                View All Bundles →
+            </a>
+            {% endif %}
+        </div>
+        
+        {% if bundles %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for bundle in bundles %}
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-lg font-semibold text-blue-400 truncate">{{ bundle.title }}</h3>
+                    <span class="px-2 py-1 bg-purple-900/50 text-purple-400 text-xs rounded flex-shrink-0 ml-2">
+                        🔒 Private
+                    </span>
+                </div>
+                
+                <p class="text-gray-400 text-sm mb-4 line-clamp-2">
+                    {{ bundle.description or 'No description' }}
+                </p>
+                
+                <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                    <span>📄 {{ bundle.get_prompts()|length }} prompts</span>
+                    <span>•</span>
+                    <span>{{ bundle.created_at.strftime('%b %d') }}</span>
+                </div>
+                
+                <a href="{{ url_for('view_bundle', bundle_id=bundle.id) }}" 
+                   class="inline-block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+                    View Bundle
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 p-8 text-center">
+            <div class="text-5xl mb-4">📦</div>
+            <h3 class="text-xl font-semibold mb-2">No Bundles Yet</h3>
+            <p class="text-gray-400 mb-6">
+                {% if user.plan == 'diamond' %}
+                    Create up to 30 bundles per month to organize your prompts
+                {% else %}
+                    Create up to 3 bundles per month with your Free plan
+                {% endif %}
             </p>
-            
-            <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-                <span>📄 {{ bundle.get_prompts()|length }} prompts</span>
-                <span>•</span>
-                <span>{{ bundle.created_at.strftime('%b %d') }}</span>
-            </div>
-            
-            <a href="{{ url_for('view_bundle', bundle_id=bundle.id) }}" 
-               class="inline-block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
-                View Bundle
+            <a href="{{ url_for('new_bundle') }}" 
+               class="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
+                📦 Create Your First Bundle
             </a>
         </div>
-        {% endfor %}
+        {% endif %}
     </div>
-    {% else %}
-    <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 p-8 text-center">
-        <div class="text-5xl mb-4">📦</div>
-        <h3 class="text-xl font-semibold mb-2">No Bundles Yet</h3>
-        <p class="text-gray-400 mb-6">
-            {% if user.plan == 'diamond' %}
-                Create up to 30 bundles per month to organize your prompts
-            {% else %}
-                Create up to 3 bundles per month with your Free plan
-            {% endif %}
-        </p>
-        <a href="{{ url_for('new_bundle') }}" 
-           class="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
-            📦 Create Your First Bundle
-        </a>
-    </div>
-    {% endif %}
+
 </div>
 {% endblock %}
