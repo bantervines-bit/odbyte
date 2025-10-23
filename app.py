@@ -430,11 +430,17 @@ def upgrade():
 @app.route('/create-order', methods=['POST'])
 @login_required
 def create_order():
-    amount = 49900
+    data = request.get_json()
+    plan_type = data.get('plan_type', 'monthly')  # 'monthly' or 'annual'
+    
+    if plan_type == 'annual':
+        amount = 3900  # $39 in cents
+    else:
+        amount = 500  # $5 in cents
     
     order_data = {
         'amount': amount,
-        'currency': 'INR',
+        'currency': 'USD',
         'payment_capture': 1
     }
     
@@ -443,10 +449,10 @@ def create_order():
     return jsonify({
         'order_id': order['id'],
         'amount': amount,
-        'currency': 'INR',
-        'key': RAZORPAY_KEY_ID
+        'currency': 'USD',
+        'key': RAZORPAY_KEY_ID,
+        'plan_type': plan_type
     })
-
 @app.route('/payment-success', methods=['POST'])
 @login_required
 def payment_success():
