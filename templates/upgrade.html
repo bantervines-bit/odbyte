@@ -47,11 +47,13 @@
                     <span class="text-4xl font-bold text-blue-400">$5</span>
                     <span class="text-gray-300">/month</span>
                 </div>
-                <div class="text-sm text-gray-400 mb-2">or save 18% with</div>
+                <div class="text-sm text-gray-400 mb-2">or save with annual:</div>
                 <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-purple-400">$49</span>
-                    <span class="text-gray-300">lifetime</span>
+                    <span class="text-3xl font-bold text-purple-400">$39</span>
+                    <span class="text-gray-300">/year</span>
+                    <span class="px-2 py-1 bg-green-600 text-white text-xs rounded font-semibold ml-2">Save $21</span>
                 </div>
+                <p class="text-xs text-purple-300 mt-1">💰 Get 4 months FREE!</p>
             </div>
             
             <ul class="space-y-3 text-gray-200 mb-8">
@@ -90,24 +92,28 @@
                 </button>
             </div>
             
-            <!-- Lifetime -->
+            <!-- Annual -->
             <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-6 rounded-lg border-2 border-purple-500 hover:border-purple-400 transition cursor-pointer relative">
                 <div class="absolute -top-3 right-4 bg-green-600 px-3 py-1 rounded-full text-xs font-bold">
-                    SAVE 18%
+                    BEST VALUE 🔥
                 </div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h4 class="text-xl font-semibold text-purple-400 mb-1">Lifetime</h4>
-                        <p class="text-sm text-gray-400">One payment, forever</p>
+                        <h4 class="text-xl font-semibold text-purple-400 mb-1">Annual</h4>
+                        <p class="text-sm text-gray-400">12 months for price of 8</p>
                     </div>
                     <div class="text-right">
-                        <div class="text-2xl font-bold text-purple-400">$49</div>
-                        <div class="text-xs text-gray-400">one-time</div>
+                        <div class="text-2xl font-bold text-purple-400">$39</div>
+                        <div class="text-xs text-gray-400">/year</div>
                     </div>
                 </div>
-                <button onclick="initiatePayment('lifetime')" 
+                <div class="mb-4 text-center">
+                    <p class="text-sm text-green-400 font-semibold">💰 Save $21/year</p>
+                    <p class="text-xs text-gray-400">4 months completely FREE!</p>
+                </div>
+                <button onclick="initiatePayment('annual')" 
                         class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 rounded-lg font-semibold transition glow">
-                    Get Lifetime Access
+                    Get Annual Plan
                 </button>
             </div>
         </div>
@@ -144,12 +150,16 @@
                 <p class="text-sm text-gray-400">You keep Diamond access until the end of your billing period. Your prompts are safe.</p>
             </div>
             <div>
-                <h4 class="font-semibold text-blue-400 mb-1">Can I switch from monthly to lifetime?</h4>
-                <p class="text-sm text-gray-400">Yes! Contact support and we'll credit your monthly payments toward lifetime.</p>
+                <h4 class="font-semibold text-blue-400 mb-1">Can I switch from monthly to annual?</h4>
+                <p class="text-sm text-gray-400">Yes! Contact support and we'll help you switch to annual billing and save money.</p>
             </div>
             <div>
                 <h4 class="font-semibold text-blue-400 mb-1">Do I get a refund if I don't like it?</h4>
-                <p class="text-sm text-gray-400">Monthly: Cancel anytime. Lifetime: 7-day money-back guarantee, no questions asked.</p>
+                <p class="text-sm text-gray-400">Yes! We offer a 7-day money-back guarantee on all plans - no questions asked.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-blue-400 mb-1">Why is annual better value?</h4>
+                <p class="text-sm text-gray-400">Annual costs $39 vs $60 if paid monthly ($5×12). You save $21 annually - that's 4 free months! If you plan to use ODByte for more than 8 months, annual is the smart choice.</p>
             </div>
         </div>
     </div>
@@ -166,7 +176,7 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 function initiatePayment(type) {
-    let amount = type === 'monthly' ? 500 : 4900; // $5 or $49 in cents
+    let amount = type === 'monthly' ? 500 : 3900; // $5 or $39 in cents
     
     fetch('/create-order', {
         method: 'POST',
@@ -186,7 +196,7 @@ function initiatePayment(type) {
             currency: 'USD',
             order_id: data.order_id,
             name: 'ODByte',
-            description: type === 'monthly' ? 'Diamond Plan - Monthly' : 'Diamond Plan - Lifetime',
+            description: type === 'monthly' ? 'Diamond Plan - Monthly' : 'Diamond Plan - Annual',
             handler: function (response) {
                 const form = document.createElement('form');
                 form.method = 'POST';
