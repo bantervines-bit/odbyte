@@ -41,31 +41,54 @@
     {% if prompts %}
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for prompt in prompts %}
-                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition card-hover">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
-                        <span class="px-2 py-1 bg-green-900/50 text-green-400 text-xs rounded">Public</span>
-                    </div>
-                    
-                    <p class="text-gray-400 text-sm mb-4">{{ prompt.description[:100] }}{% if prompt.description|length > 100 %}...{% endif %}</p>
-                    
-                    <p class="text-gray-500 text-xs mb-4">By {{ prompt.author.name }}</p>
-                    
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        {% if prompt.category %}
-                            <span class="px-2 py-1 bg-purple-900/50 text-purple-300 text-xs rounded">{{ prompt.category }}</span>
-                        {% endif %}
-                        {% if prompt.ai_model %}
-                            <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">{{ prompt.ai_model }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
-                       class="block w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-center transition">
-                        View Prompt
-                    </a>
-                </div>
-            {% endfor %}
+<div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition">
+    <div class="flex justify-between items-start mb-3">
+        <h3 class="text-xl font-semibold text-blue-400">{{ prompt.title }}</h3>
+        <div class="flex gap-2">
+            {% if prompt.is_premium and prompt.premium_status == 'approved' %}
+            <span class="px-3 py-1 bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-sm rounded-full font-semibold flex items-center gap-1">
+                ⭐ Premium
+            </span>
+            {% endif %}
+            {% if prompt.visibility == 'private' %}
+            <span class="px-3 py-1 bg-purple-900/50 text-purple-400 text-sm rounded-full">Private</span>
+            {% else %}
+            <span class="px-3 py-1 bg-green-900/50 text-green-400 text-sm rounded-full">Public</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <p class="text-gray-300 mb-4">{{ prompt.description }}</p>
+    
+    <div class="flex items-center gap-3 text-sm text-gray-500 mb-4">
+        {% if prompt.category %}
+        <span class="px-3 py-1 bg-gray-800 rounded">{{ prompt.category }}</span>
+        {% endif %}
+        {% if prompt.ai_model %}
+        <span class="px-3 py-1 bg-gray-800 rounded">{{ prompt.ai_model }}</span>
+        {% endif %}
+    </div>
+    
+    {% if prompt.is_premium and prompt.premium_status == 'approved' %}
+        {% if user_plan in ['diamond', 'premium'] %}
+            <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+               class="block text-center px-4 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 hover:opacity-90 rounded-lg text-sm font-semibold transition">
+                View Premium Prompt
+            </a>
+        {% else %}
+            <button onclick="alert('Upgrade to Diamond to access premium prompts!')" 
+                    class="w-full px-4 py-2 bg-gray-700 text-gray-400 rounded-lg text-sm font-semibold cursor-not-allowed">
+                🔒 Diamond Only
+            </button>
+        {% endif %}
+    {% else %}
+        <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+           class="block text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+            View Prompt
+        </a>
+    {% endif %}
+</div>
+{% endfor %}
         </div>
     {% else %}
         <div class="text-center py-20">
