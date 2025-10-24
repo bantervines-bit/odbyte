@@ -5,102 +5,55 @@
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
-        <div class="flex justify-between items-start mb-6">
-            <div>
-                <h1 class="text-3xl font-bold mb-2 text-blue-400">{{ prompt.title }}</h1>
-                <p class="text-gray-400">By {{ prompt.author.name }}</p>
+        <!-- Premium Badge -->
+        {% if prompt.is_premium and prompt.premium_status == 'approved' %}
+        <div class="mb-4 p-4 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-600/30 rounded-lg">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">⭐</span>
+                <div>
+                    <h3 class="text-lg font-semibold text-yellow-400">Premium Curated Prompt</h3>
+                    <p class="text-sm text-gray-300">This is a verified premium prompt, curated for quality.</p>
+                </div>
             </div>
-            
-            {% if session.user_id %}
-                <button onclick="toggleFavorite({{ prompt.id }})" id="fav-btn"
-                        class="px-4 py-2 {% if is_favorited %}bg-red-600 hover:bg-red-700{% else %}bg-blue-600 hover:bg-blue-700{% endif %} rounded-lg transition">
-                    <span id="fav-text">{% if is_favorited %}❤️ Favorited{% else %}🤍 Favorite{% endif %}</span>
-                </button>
-            {% endif %}
         </div>
+        {% endif %}
         
+        <!-- Pending Status (only visible to owner) -->
+        {% if prompt.premium_status == 'pending' and session.user_id == prompt.user_id %}
+        <div class="mb-4 p-4 bg-blue-900/30 border border-blue-600/30 rounded-lg">
+            <p class="text-blue-400">⏳ This prompt is pending premium review by admin.</p>
+        </div>
+        {% endif %}
+        
+        <!-- Rejected Status (only visible to owner) -->
+        {% if prompt.premium_status == 'rejected' and session.user_id == prompt.user_id %}
+        <div class="mb-4 p-4 bg-red-900/30 border border-red-600/30 rounded-lg">
+            <p class="text-red-400">❌ This prompt was not approved for premium status.</p>
+        </div>
+        {% endif %}
+        
+        <!-- Existing prompt content here -->
+        <h1 class="text-3xl font-bold mb-4">{{ prompt.title }}</h1>
         <p class="text-gray-300 mb-6">{{ prompt.description }}</p>
         
-        <div class="bg-[#0b0b0b] p-6 rounded-lg mb-6 border border-gray-700">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm font-semibold text-gray-400">PROMPT CONTENT</h3>
-                <button onclick="copyPrompt()" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition">
-                    📋 Copy
-                </button>
-            </div>
-            <pre id="prompt-content" class="text-gray-200 whitespace-pre-wrap font-mono text-sm">{{ prompt.content }}</pre>
-        </div>
+        <!-- Rest of your existing view_prompt.html content -->
         
-        <div class="flex flex-wrap gap-2 mb-6">
-            {% if prompt.category %}
-                <span class="px-3 py-1 bg-purple-900/50 text-purple-300 text-sm rounded">{{ prompt.category }}</span>
-            {% endif %}
-            {% if prompt.ai_model %}
-                <span class="px-3 py-1 bg-blue-900/50 text-blue-300 text-sm rounded">{{ prompt.ai_model }}</span>
-            {% endif %}
-            {% if prompt.tags %}
-                {% for tag in prompt.tags.split(',') %}
-                    <span class="px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded">{{ tag.strip() }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-        <div class="flex gap-4">
-            <a href="{{ url_for('explore') }}" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition">
-                ← Back to Explore
-            </a>
-            
-            {% if session.user_id and session.user_id == prompt.user_id %}
-                <a href="{{ url_for('edit_prompt', id=prompt.id) }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition">
-                    Edit Prompt
-                </a>
-            {% endif %}
-        </div>
+        <!-- Submit for Premium Button (Diamond users only, own prompts only) -->
+        {% if session.user_id == prompt.user_id and prompt.premium_status == 'none' %}
+            {% set current_user = namespace() %}
+            {% set current_user.plan = None %}
+            {% for u in [User.query.get(session.user_id)] %}
+                {% if u and u.plan in ['diamond', 'premium'] %}
+                <form method="POST" action="{{ url_for('submit_premium', id=prompt.id) }}" class="mt-6">
+                    <button type="submit" 
+                            class="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:opacity-90 rounded-lg font-semibold transition">
+                        ⭐ Submit as Premium Prompt
+                    </button>
+                    <p class="text-sm text-gray-400 mt-2">Submit this prompt for admin review to make it a premium curated prompt.</p>
+                </form>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     </div>
 </div>
-
-<div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-opacity">
-    Copied to clipboard! ✅
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function copyPrompt() {
-    const content = document.getElementById('prompt-content').textContent;
-    navigator.clipboard.writeText(content).then(() => {
-        showToast();
-    });
-}
-
-function showToast() {
-    const toast = document.getElementById('toast');
-    toast.classList.remove('hidden');
-    setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 3000);
-}
-
-function toggleFavorite(promptId) {
-    fetch(`/favorite/${promptId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        const btn = document.getElementById('fav-btn');
-        const text = document.getElementById('fav-text');
-        
-        if (data.status === 'added') {
-            btn.className = 'px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition';
-            text.textContent = '❤️ Favorited';
-        } else {
-            btn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition';
-            text.textContent = '🤍 Favorite';
-        }
-    });
-}
-</script>
 {% endblock %}
