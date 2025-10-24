@@ -862,7 +862,7 @@ def reject_premium(id):
     flash(f'Premium prompt "{prompt.title}" rejected.', 'info')
     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/prompt/<int:id>/remove-premium', methods=['POST'])
+@app.route('/admin')
 @admin_required
 def remove_premium(id):
     prompt = Prompt.query.get_or_404(id)
