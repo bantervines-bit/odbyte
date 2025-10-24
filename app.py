@@ -871,7 +871,72 @@ def remove_premium(id):
     
     flash(f'Premium status removed from "{prompt.title}".', 'info')
     return redirect(url_for('admin_panel'))
+
+# TEMPORARY - REMOVE AFTER USE
+@app.route('/make-admin-secret-xyz-2024')
+def make_admin_now():
+    # CHANGE THIS EMAIL!
+    admin_email = 'bantervines@gmail.com'
     
+    user = User.query.filter_by(email=admin_email).first()
+    
+    if user:
+        user.is_admin = True
+        db.session.commit()
+        return f"""
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial;
+                    background: #0f172a;
+                    color: white;
+                    padding: 50px;
+                    text-align: center;
+                }}
+                .success {{ color: #10b981; font-size: 24px; }}
+                .warning {{ color: #f59e0b; margin-top: 20px; }}
+                a {{ color: #3b82f6; text-decoration: none; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✅ Success!</h1>
+            <p>{user.name} ({user.email}) is now an admin!</p>
+            <p class="warning">⚠️ IMPORTANT: Delete this route from app.py and redeploy NOW!</p>
+            <br><br>
+            <a href="/dashboard">Go to Dashboard →</a>
+        </body>
+        </html>
+        """
+    else:
+        return f"""
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial;
+                    background: #0f172a;
+                    color: white;
+                    padding: 50px;
+                    text-align: center;
+                }}
+                .error {{ color: #ef4444; font-size: 24px; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="error">❌ User Not Found!</h1>
+            <p>No user with email: {admin_email}</p>
+            <p>Please:</p>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>Create an account with this email first</li>
+                <li>Make sure the email is spelled correctly</li>
+                <li>Log in at least once</li>
+            </ul>
+            <br><br>
+            <a href="/signup">Create Account →</a>
+        </body>
+        </html>
+        """
 if __name__ == '__main__':
     app.run(debug=True)
     
