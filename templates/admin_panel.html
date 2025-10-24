@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - ODByte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-8">🛠️ Admin Panel</h1>
+    
+    <!-- Pending Premium Prompts -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">Pending Premium Prompts ({{ pending_prompts|length }})</h2>
+        
+        {% if not pending_prompts %}
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 text-center">
+            <p class="text-gray-400">No pending premium prompts</p>
+        </div>
+        {% else %}
+        <div class="space-y-4">
+            {% for prompt in pending_prompts %}
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-yellow-600/30">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-semibold text-blue-400 mb-2">{{ prompt.title }}</h3>
+                        <p class="text-gray-300 mb-3">{{ prompt.description }}</p>
+                        <div class="flex gap-3 text-sm text-gray-500">
+                            <span>By: {{ prompt.author.name }}</span>
+                            <span>•</span>
+                            <span>{{ prompt.created_at.strftime('%B %d, %Y') }}</span>
+                            {% if prompt.category %}
+                            <span>•</span>
+                            <span>{{ prompt.category }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-yellow-900/50 text-yellow-400 text-sm rounded-full">⏳ Pending</span>
+                </div>
+                
+                <div class="bg-[#0b0b0b] p-4 rounded-lg mb-4">
+                    <pre class="text-sm text-gray-300 whitespace-pre-wrap">{{ prompt.content[:200] }}{% if prompt.content|length > 200 %}...{% endif %}</pre>
+                </div>
+                
+                <div class="flex gap-3">
+                    <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+                       class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+                        View Full Prompt
+                    </a>
+                    <form method="POST" action="{{ url_for('approve_premium', id=prompt.id) }}" class="inline">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
+                            ✓ Approve
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('reject_premium', id=prompt.id) }}" class="inline">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
+                            ✗ Reject
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Approved Premium Prompts -->
+    <div>
+        <h2 class="text-2xl font-bold mb-6">Approved Premium Prompts ({{ approved_prompts|length }})</h2>
+        
+        {% if not approved_prompts %}
+        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 text-center">
+            <p class="text-gray-400">No approved premium prompts yet</p>
+        </div>
+        {% else %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for prompt in approved_prompts %}
+            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-green-600/30">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-lg font-semibold text-blue-400">{{ prompt.title }}</h3>
+                    <span class="px-2 py-1 bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-xs rounded-full">⭐ Premium</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-4">{{ prompt.description[:100] }}...</p>
+                <div class="flex gap-2">
+                    <a href="{{ url_for('view_prompt', id=prompt.id) }}" 
+                       class="flex-1 text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+                        View
+                    </a>
+                    <form method="POST" action="{{ url_for('remove_premium', id=prompt.id) }}" class="inline">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
+                            Remove
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
