@@ -862,7 +862,7 @@ def reject_premium(id):
     flash(f'Premium prompt "{prompt.title}" rejected.', 'info')
     return redirect(url_for('admin_panel'))
 
-@app.route('/admin')
+@app.route('/admin/prompt/<int:id>/remove-premium', methods=['POST'])
 @admin_required
 def remove_premium(id):
     prompt = Prompt.query.get_or_404(id)
@@ -937,7 +937,7 @@ def make_admin_now():
             <a href="/signup">Create Account →</a>
         </body>
         </html>
-    
+        """
+
 if __name__ == '__main__':
     app.run(debug=True)
-    
