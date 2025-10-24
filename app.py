@@ -936,7 +936,7 @@ def make_admin_now():
             <a href="/signup">Create Account →</a>
         </body>
         </html>
-        """
+    
 if __name__ == '__main__':
     app.run(debug=True)
     
