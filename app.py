@@ -34,6 +34,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     plan = db.Column(db.String(20), default='free')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_admin = db.Column(db.Boolean, default=False)  # NEW FIELD
     prompts = db.relationship('Prompt', backref='author', lazy=True, cascade='all, delete-orphan')
     favorites = db.relationship('Favorite', backref='user', lazy=True, cascade='all, delete-orphan')
 
@@ -48,6 +49,8 @@ class Prompt(db.Model):
     visibility = db.Column(db.String(20), default='private')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_premium = db.Column(db.Boolean, default=False)  # NEW FIELD
+    premium_status = db.Column(db.String(20), default='none')  # NEW FIELD: 'none', 'pending', 'approved', 'rejected'
     favorites = db.relationship('Favorite', backref='prompt', lazy=True, cascade='all, delete-orphan')
 
 class Favorite(db.Model):
@@ -103,10 +106,24 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please login to access this page.', 'error')
+            return redirect(url_for('login'))
+        
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            flash('Admin access required!', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def generate_bundle_link():
     """Generate a unique random link for bundles"""
     return secrets.token_urlsafe(16)
+    
     
 @app.route('/')
 def index():
@@ -370,9 +387,12 @@ def explore():
     search = request.args.get('search', '')
     category = request.args.get('category', '')
     ai_model = request.args.get('ai_model', '')
+    show_premium = request.args.get('premium', '')
     
+    # Start with public prompts
     query = Prompt.query.filter_by(visibility='public')
     
+    # Apply filters
     if search:
         query = query.filter(
             (Prompt.title.contains(search)) | 
@@ -386,7 +406,17 @@ def explore():
     if ai_model:
         query = query.filter_by(ai_model=ai_model)
     
+    # Premium filter
+    if show_premium == 'true':
+        query = query.filter_by(is_premium=True, premium_status='approved')
+    
     prompts = query.order_by(Prompt.created_at.desc()).all()
+    
+    # Check if user is logged in and their plan
+    user_plan = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        user_plan = user.plan if user else None
     
     categories = db.session.query(Prompt.category).filter_by(visibility='public').distinct().all()
     ai_models = db.session.query(Prompt.ai_model).filter_by(visibility='public').distinct().all()
@@ -394,7 +424,8 @@ def explore():
     return render_template('explore.html', 
                          prompts=prompts, 
                          categories=[c[0] for c in categories if c[0]], 
-                         ai_models=[m[0] for m in ai_models if m[0]])
+                         ai_models=[m[0] for m in ai_models if m[0]],
+                         user_plan=user_plan)
 
 @app.route('/favorites')
 @login_required
