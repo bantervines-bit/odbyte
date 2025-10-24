@@ -357,17 +357,30 @@ def bulk_upload():
 def view_prompt(id):
     prompt = Prompt.query.get_or_404(id)
     
+    # Check if prompt is private
     if prompt.visibility == 'private':
         if 'user_id' not in session or session['user_id'] != prompt.user_id:
             flash('This prompt is private!', 'error')
             return redirect(url_for('explore'))
+    
+    # Check if prompt is premium
+    if prompt.is_premium and prompt.premium_status == 'approved':
+        # Free users cannot view premium prompts
+        if 'user_id' not in session:
+            flash('Please login to view premium prompts!', 'error')
+            return redirect(url_for('login'))
+        
+        user = User.query.get(session['user_id'])
+        if user.plan not in ['diamond', 'premium']:
+            flash('Upgrade to Diamond to view premium prompts!', 'error')
+            return redirect(url_for('pricing'))
     
     is_favorited = False
     if 'user_id' in session:
         is_favorited = Favorite.query.filter_by(user_id=session['user_id'], prompt_id=id).first() is not None
     
     return render_template('view_prompt.html', prompt=prompt, is_favorited=is_favorited)
-
+    
 @app.route('/prompt/<int:id>/delete', methods=['POST'])
 @login_required
 def delete_prompt(id):
@@ -782,7 +795,83 @@ def delete_bundle(bundle_id):
     db.session.commit()
     flash('Bundle deleted successfully!', 'success')
     return redirect(url_for('bundles'))
+    
+@app.route('/prompt/<int:id>/submit-premium', methods=['POST'])
+@login_required
+def submit_premium(id):
+    user = User.query.get(session['user_id'])
+    prompt = Prompt.query.get_or_404(id)
+    
+    # Check if user owns the prompt
+    if prompt.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Check if user is Diamond
+    if user.plan not in ['diamond', 'premium']:
+        flash('Only Diamond users can submit premium prompts!', 'error')
+        return redirect(url_for('pricing'))
+    
+    # Check if already submitted
+    if prompt.premium_status != 'none':
+        flash('This prompt has already been submitted for premium review!', 'info')
+        return redirect(url_for('view_prompt', id=id))
+    
+    # Submit for review
+    prompt.premium_status = 'pending'
+    db.session.commit()
+    
+    flash('Prompt submitted for premium review! You\'ll be notified once approved.', 'success')
+    return redirect(url_for('view_prompt', id=id))
+    @app.route('/admin')
+@admin_required
+def admin_panel():
+    user = User.query.get(session['user_id'])
+    
+    # Get pending premium prompts
+    pending_prompts = Prompt.query.filter_by(premium_status='pending').order_by(Prompt.created_at.desc()).all()
+    
+    # Get all premium prompts
+    approved_prompts = Prompt.query.filter_by(premium_status='approved').order_by(Prompt.created_at.desc()).all()
+    
+    return render_template('admin_panel.html', user=user, 
+                         pending_prompts=pending_prompts, 
+                         approved_prompts=approved_prompts)
 
+@app.route('/admin/prompt/<int:id>/approve', methods=['POST'])
+@admin_required
+def approve_premium(id):
+    prompt = Prompt.query.get_or_404(id)
+    prompt.premium_status = 'approved'
+    prompt.is_premium = True
+    prompt.visibility = 'public'  # Make it public so it appears in explore
+    db.session.commit()
+    
+    flash(f'Premium prompt "{prompt.title}" approved!', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/prompt/<int:id>/reject', methods=['POST'])
+@admin_required
+def reject_premium(id):
+    prompt = Prompt.query.get_or_404(id)
+    prompt.premium_status = 'rejected'
+    prompt.is_premium = False
+    db.session.commit()
+    
+    flash(f'Premium prompt "{prompt.title}" rejected.', 'info')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/prompt/<int:id>/remove-premium', methods=['POST'])
+@admin_required
+def remove_premium(id):
+    prompt = Prompt.query.get_or_404(id)
+    prompt.premium_status = 'none'
+    prompt.is_premium = False
+    db.session.commit()
+    
+    flash(f'Premium status removed from "{prompt.title}".', 'info')
+    return redirect(url_for('admin_panel'))
+    
 if __name__ == '__main__':
     app.run(debug=True)
     
