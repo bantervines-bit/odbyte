@@ -823,7 +823,8 @@ def submit_premium(id):
     
     flash('Prompt submitted for premium review! You\'ll be notified once approved.', 'success')
     return redirect(url_for('view_prompt', id=id))
-    @app.route('/admin')
+   
+@app.route('/admin')
 @admin_required
 def admin_panel():
     user = User.query.get(session['user_id'])
