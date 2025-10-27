@@ -127,6 +127,10 @@ def generate_bundle_link():
     
 @app.route('/')
 def index():
+    # Redirect logged-in users to dashboard
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    
     # Get 6 most recent public prompts for homepage
     recent_prompts = Prompt.query.filter_by(visibility='public').order_by(Prompt.created_at.desc()).limit(6).all()
     
