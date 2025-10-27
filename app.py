@@ -169,6 +169,10 @@ def index():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    # Redirect if already logged in
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -187,9 +191,12 @@ def signup():
         return redirect(url_for('login'))
     
     return render_template('signup.html')
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Redirect if already logged in
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -206,7 +213,6 @@ def login():
             flash('Invalid email or password!', 'error')
     
     return render_template('login.html')
-
 @app.route('/logout')
 def logout():
     session.clear()
