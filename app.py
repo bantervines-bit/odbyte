@@ -40,7 +40,46 @@ else:
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_your_key_id')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'your_key_secret')
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+# Supabase Helper Functions
+def get_user_by_email(email):
+    """Get user from Supabase by email"""
+    if not supabase:
+        return None
+    try:
+        response = supabase.table('users').select('*').eq('email', email).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error getting user: {e}")
+        return None
 
+def create_user_supabase(name, email, password):
+    """Create user in Supabase"""
+    if not supabase:
+        return None
+    try:
+        hashed_password = generate_password_hash(password)
+        response = supabase.table('users').insert({
+            'name': name,
+            'email': email,
+            'password': hashed_password,
+            'plan': 'free'
+        }).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error creating user: {e}")
+        return None
+
+def get_user_by_id(user_id):
+    """Get user from Supabase by ID"""
+    if not supabase:
+        return None
+    try:
+        response = supabase.table('users').select('*').eq('id', user_id).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error getting user: {e}")
+        return None
+        
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -193,7 +232,6 @@ def index():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    # Redirect if already logged in
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     
@@ -202,17 +240,33 @@ def signup():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered!', 'error')
-            return redirect(url_for('signup'))
-        
-        hashed_password = generate_password_hash(password)
-        new_user = User(name=name, email=email, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Account created successfully! Please login.', 'success')
-        return redirect(url_for('login'))
+        # Check if using Supabase
+        if supabase:
+            existing_user = get_user_by_email(email)
+            if existing_user:
+                flash('Email already registered!', 'error')
+                return redirect(url_for('signup'))
+            
+            new_user = create_user_supabase(name, email, password)
+            if new_user:
+                flash('Account created successfully! Please login.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('Error creating account. Please try again.', 'error')
+                return redirect(url_for('signup'))
+        else:
+            # Fallback to local database
+            if User.query.filter_by(email=email).first():
+                flash('Email already registered!', 'error')
+                return redirect(url_for('signup'))
+            
+            hashed_password = generate_password_hash(password)
+            new_user = User(name=name, email=email, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            flash('Account created successfully! Please login.', 'success')
+            return redirect(url_for('login'))
     
     return render_template('signup.html')
 @app.route('/login', methods=['GET', 'POST'])
