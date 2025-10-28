@@ -11,14 +11,19 @@ from pathlib import Path
 import secrets
 
 app = Flask(__name__)
+CORS(app)
+
+# Secret Key (change in production)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///odbyte.db')
+
+# ✅ Supabase PostgreSQL connection
+# Replace YOUR_SUPABASE_PASSWORD with your actual Supabase DB password
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    'postgresql://postgres:YOUR_SUPABASE_PASSWORD@db.nokvyxostorjjgcqibbi.supabase.co:5432/postgres?sslmode=require'
+)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Fix for PostgreSQL URI
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
-
 db = SQLAlchemy(app)
 
 # Razorpay Configuration
