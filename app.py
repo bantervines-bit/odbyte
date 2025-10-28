@@ -120,9 +120,18 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.context_processor
+def inject_user():
+    """Make current user available to all templates"""
+    if 'user_id' in session:
+        current_user = User.query.get(session['user_id'])
+        return dict(current_user=current_user)
+    return dict(current_user=None)
+
 def generate_bundle_link():
     """Generate a unique random link for bundles"""
     return secrets.token_urlsafe(16)
+
     
     
 @app.route('/')
