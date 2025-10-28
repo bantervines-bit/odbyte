@@ -11,9 +11,6 @@ from pathlib import Path
 import secrets
 
 app = Flask(__name__)
-CORS(app)
-
-app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///odbyte.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
