@@ -271,7 +271,6 @@ def signup():
     return render_template('signup.html')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Redirect if already logged in
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     
@@ -279,16 +278,28 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        user = User.query.filter_by(email=email).first()
-        
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            session['user_name'] = user.name
-            session['user_plan'] = user.plan
-            flash(f'Welcome back, {user.name}!', 'success')
-            return redirect(url_for('dashboard'))
+        # Check if using Supabase
+        if supabase:
+            user = get_user_by_email(email)
+            if user and check_password_hash(user['password'], password):
+                session['user_id'] = user['id']
+                session['user_name'] = user['name']
+                session['user_plan'] = user['plan']
+                flash(f'Welcome back, {user["name"]}!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid email or password!', 'error')
         else:
-            flash('Invalid email or password!', 'error')
+            # Fallback to local database
+            user = User.query.filter_by(email=email).first()
+            if user and check_password_hash(user.password, password):
+                session['user_id'] = user.id
+                session['user_name'] = user.name
+                session['user_plan'] = user.plan
+                flash(f'Welcome back, {user.name}!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid email or password!', 'error')
     
     return render_template('login.html')
 @app.route('/logout')
