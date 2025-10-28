@@ -20,7 +20,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 # Replace YOUR_SUPABASE_PASSWORD with your actual Supabase DB password
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
-    'postgresql://postgres:YOUR_SUPABASE_PASSWORD@db.nokvyxostorjjgcqibbi.supabase.co:5432/postgres?sslmode=require'
+    'postgresql://postgres:Banter123@@db.nokvyxostorjjgcqibbi.supabase.co:5432/postgres?sslmode=require'
 )
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
