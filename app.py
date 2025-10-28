@@ -9,6 +9,7 @@ import markdown
 import os
 from pathlib import Path
 import secrets
+from supabase import create_client, Client
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
