@@ -6,7 +6,6 @@ import os
 from datetime import datetime
 import razorpay
 import markdown
-import os
 from pathlib import Path
 import secrets
 from supabase import create_client, Client
@@ -26,15 +25,14 @@ db = SQLAlchemy(app)
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
-# 🔍 TEMPORARY DEBUGGING - Baad mein delete kar dena
 print("=" * 50)
 print("🔍 DEBUG: Checking Supabase Credentials")
 print(f"SUPABASE_URL exists: {SUPABASE_URL is not None}")
 print(f"SUPABASE_KEY exists: {SUPABASE_KEY is not None}")
 if SUPABASE_URL:
-    print(f"SUPABASE_URL starts with: {SUPABASE_URL[:30]}...")
+    print(f"SUPABASE_URL: {SUPABASE_URL[:30]}...")
 if SUPABASE_KEY:
-    print(f"SUPABASE_KEY starts with: {SUPABASE_KEY[:30]}...")
+    print(f"SUPABASE_KEY: {SUPABASE_KEY[:30]}...")
 print("=" * 50)
 
 supabase: Client = None
@@ -52,6 +50,7 @@ else:
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_your_key_id')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'your_key_secret')
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
 # Supabase Helper Functions
 def get_user_by_email(email):
     """Get user from Supabase by email"""
@@ -74,7 +73,8 @@ def create_user_supabase(name, email, password):
             'name': name,
             'email': email,
             'password': hashed_password,
-            'plan': 'free'
+            'plan': 'free',
+            'is_admin': False
         }).execute()
         return response.data[0] if response.data else None
     except Exception as e:
@@ -89,7 +89,7 @@ def get_user_by_id(user_id):
         response = supabase.table('users').select('*').eq('id', user_id).execute()
         return response.data[0] if response.data else None
     except Exception as e:
-        print(f"Error getting user: {e}")
+        print(f"Error getting user by ID: {e}")
         return None
 
 def get_current_user():
@@ -105,13 +105,17 @@ def get_current_user():
         # Convert dict to User-like object
         class UserProxy:
             def __init__(self, data):
-                for key, value in data.items():
-                    setattr(self, key, value)
+                self.id = data['id']
+                self.name = data['name']
+                self.email = data['email']
+                self.plan = data.get('plan', 'free')
+                self.is_admin = data.get('is_admin', False)
+                self.created_at = data.get('created_at')
         
         return UserProxy(user_data)
     else:
         return User.query.get(session['user_id'])
-        
+
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -120,7 +124,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     plan = db.Column(db.String(20), default='free')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    is_admin = db.Column(db.Boolean, default=False)  # NEW FIELD
+    is_admin = db.Column(db.Boolean, default=False)
     prompts = db.relationship('Prompt', backref='author', lazy=True, cascade='all, delete-orphan')
     favorites = db.relationship('Favorite', backref='user', lazy=True, cascade='all, delete-orphan')
 
@@ -135,8 +139,8 @@ class Prompt(db.Model):
     visibility = db.Column(db.String(20), default='private')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    is_premium = db.Column(db.Boolean, default=False)  # NEW FIELD
-    premium_status = db.Column(db.String(20), default='none')  # NEW FIELD: 'none', 'pending', 'approved', 'rejected'
+    is_premium = db.Column(db.Boolean, default=False)
+    premium_status = db.Column(db.String(20), default='none')
     favorites = db.relationship('Favorite', backref='prompt', lazy=True, cascade='all, delete-orphan')
 
 class Favorite(db.Model):
@@ -183,7 +187,8 @@ class PromptBundle(db.Model):
         if self.prompt_ids:
             ids = [id for id in self.prompt_ids.split(',') if id.strip() != str(prompt_id)]
             self.prompt_ids = ','.join(ids)
-    
+
+# Decorators
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -192,6 +197,7 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -199,18 +205,10 @@ def admin_required(f):
             flash('Please login to access this page.', 'error')
             return redirect(url_for('login'))
         
-        # Try Supabase first
-        if supabase:
-            user_data = get_user_by_id(session['user_id'])
-            if not user_data or not user_data.get('is_admin', False):
-                flash('Admin access required!', 'error')
-                return redirect(url_for('dashboard'))
-        else:
-            # Fallback to local database
-            user = User.query.get(session['user_id'])
-            if not user or not user.is_admin:
-                flash('Admin access required!', 'error')
-                return redirect(url_for('dashboard'))
+        user = get_current_user()
+        if not user or not user.is_admin:
+            flash('Admin access required!', 'error')
+            return redirect(url_for('dashboard'))
         
         return f(*args, **kwargs)
     return decorated_function
@@ -219,48 +217,27 @@ def admin_required(f):
 def inject_user():
     """Make current user available to all templates"""
     if 'user_id' in session:
-        # Try Supabase first
-        if supabase:
-            user_data = get_user_by_id(session['user_id'])
-            if user_data:
-                class UserObj:
-                    def __init__(self, data):
-                        self.id = data['id']
-                        self.name = data['name']
-                        self.email = data['email']
-                        self.plan = data['plan']
-                        self.is_admin = data.get('is_admin', False)
-                
-                current_user = UserObj(user_data)
-                return dict(current_user=current_user)
-        else:
-            # Fallback to local database
-            current_user = User.query.get(session['user_id'])
-            return dict(current_user=current_user)
-    
+        current_user = get_current_user()
+        return dict(current_user=current_user)
     return dict(current_user=None)
 
 def generate_bundle_link():
     """Generate a unique random link for bundles"""
     return secrets.token_urlsafe(16)
 
-    
-    
+# Routes
 @app.route('/')
 def index():
-    # Redirect logged-in users to dashboard
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     
-    # Get 6 most recent public prompts for homepage
     recent_prompts = Prompt.query.filter_by(visibility='public').order_by(Prompt.created_at.desc()).limit(6).all()
     
-    # Get 3 most recent blog posts
     recent_posts = []
     blog_dir = Path('blog_posts')
     
     if blog_dir.exists():
-        for file in sorted(blog_dir.glob('*.md'), reverse=True)[:3]:  # Get latest 3
+        for file in sorted(blog_dir.glob('*.md'), reverse=True)[:3]:
             try:
                 with open(file, 'r', encoding='utf-8') as f:
                     content = f.read()
@@ -298,7 +275,6 @@ def signup():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Check if using Supabase
         if supabase:
             existing_user = get_user_by_email(email)
             if existing_user:
@@ -313,7 +289,6 @@ def signup():
                 flash('Error creating account. Please try again.', 'error')
                 return redirect(url_for('signup'))
         else:
-            # Fallback to local database
             if User.query.filter_by(email=email).first():
                 flash('Email already registered!', 'error')
                 return redirect(url_for('signup'))
@@ -327,6 +302,7 @@ def signup():
             return redirect(url_for('login'))
     
     return render_template('signup.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
@@ -336,7 +312,6 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Check if using Supabase
         if supabase:
             user = get_user_by_email(email)
             if user and check_password_hash(user['password'], password):
@@ -348,7 +323,6 @@ def login():
             else:
                 flash('Invalid email or password!', 'error')
         else:
-            # Fallback to local database
             user = User.query.filter_by(email=email).first()
             if user and check_password_hash(user.password, password):
                 session['user_id'] = user.id
@@ -360,6 +334,7 @@ def login():
                 flash('Invalid email or password!', 'error')
     
     return render_template('login.html')
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -369,41 +344,15 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    print(f"🔵 Dashboard access by user_id: {session.get('user_id')}")
-    
-    # Try Supabase first
-    if supabase:
-        user_data = get_user_by_id(session['user_id'])
-        if not user_data:
-            print("❌ User not found in Supabase")
-            session.clear()
-            flash('Session expired. Please login again.', 'error')
-            return redirect(url_for('login'))
-        
-        print(f"✅ User found: {user_data['name']}")
-        
-        # Convert dict to object for template compatibility
-        class UserObj:
-            def __init__(self, data):
-                self.id = data['id']
-                self.name = data['name']
-                self.email = data['email']
-                self.plan = data['plan']
-                self.is_admin = data.get('is_admin', False)
-        
-        user = UserObj(user_data)
-    else:
-        # Fallback to local database
-        user = User.query.get(session['user_id'])
-        if not user:
-            session.clear()
-            flash('Session expired. Please login again.', 'error')
-            return redirect(url_for('login'))
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
     prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
     prompt_count = len(prompts)
     
-    # Get user's bundles
     bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).limit(5).all()
     bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
     
@@ -413,13 +362,15 @@ def dashboard():
 @app.route('/prompt/new', methods=['GET', 'POST'])
 @login_required
 def new_prompt():
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
     if request.method == 'POST':
-        # Get current prompt count FIRST (before any checks)
         current_prompt_count = Prompt.query.filter_by(user_id=user.id).count()
         
-        # Check prompt limit based on plan
         if user.plan == 'silver':
             if current_prompt_count >= 10:
                 flash('Silver plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
@@ -429,7 +380,6 @@ def new_prompt():
                 flash('Monthly limit reached (200 prompts). Limit resets next month.', 'error')
                 return redirect(url_for('dashboard'))
         else:
-            # Default to silver limits for any other plan value
             if current_prompt_count >= 10:
                 flash('Free plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
                 return redirect(url_for('pricing'))
@@ -439,23 +389,19 @@ def new_prompt():
         content = request.form.get('content')
         tags = request.form.get('tags')
         
-        # Handle custom category
         category = request.form.get('category')
         if category == 'Other':
             category = request.form.get('custom_category', 'Other')
         
-        # Handle custom AI model
         ai_model = request.form.get('ai_model')
         if ai_model == 'Other':
             ai_model = request.form.get('custom_ai_model', 'Other')
         
         visibility = request.form.get('visibility', 'public')
         
-        # CRITICAL: Silver/Free users can ONLY create public prompts
         if user.plan != 'diamond':
-            visibility = 'public'  # Force public for non-diamond users
+            visibility = 'public'
         
-        # Create the prompt
         new_prompt_obj = Prompt(
             title=title,
             description=description,
@@ -470,7 +416,6 @@ def new_prompt():
         db.session.add(new_prompt_obj)
         db.session.commit()
         
-        # Show success message with count
         new_count = current_prompt_count + 1
         
         if user.plan == 'diamond':
@@ -487,7 +432,12 @@ def new_prompt():
 @login_required
 def edit_prompt(id):
     prompt = Prompt.query.get_or_404(id)
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
     if prompt.user_id != session['user_id']:
         flash('Unauthorized access!', 'error')
@@ -503,11 +453,10 @@ def edit_prompt(id):
         
         visibility = request.form.get('visibility', 'public')
         
-        # IMPORTANT: Silver users can ONLY have public prompts
         if user.plan == 'silver':
-            prompt.visibility = 'public'  # Force public for silver users
+            prompt.visibility = 'public'
         else:
-            prompt.visibility = visibility  # Diamond users can choose
+            prompt.visibility = visibility
         
         db.session.commit()
         flash('Prompt updated successfully!', 'success')
@@ -518,18 +467,18 @@ def edit_prompt(id):
 @app.route('/bulk-upload', methods=['GET', 'POST'])
 @login_required
 def bulk_upload():
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
-    # Only Diamond users can access bulk upload
     if user.plan != 'diamond':
         flash('Bulk upload is a Diamond feature. Upgrade to access it!', 'error')
         return redirect(url_for('pricing'))
     
     if request.method == 'POST':
-        # Get bulk data (could be textarea with JSON/CSV format)
         bulk_data = request.form.get('bulk_data')
-        
-        # For now, just show coming soon message
         flash('Bulk upload feature coming soon! We\'re working on it.', 'info')
         return redirect(url_for('dashboard'))
     
@@ -539,21 +488,18 @@ def bulk_upload():
 def view_prompt(id):
     prompt = Prompt.query.get_or_404(id)
     
-    # Check if prompt is private
     if prompt.visibility == 'private':
         if 'user_id' not in session or session['user_id'] != prompt.user_id:
             flash('This prompt is private!', 'error')
             return redirect(url_for('explore'))
     
-    # Check if prompt is premium
     if prompt.is_premium and prompt.premium_status == 'approved':
-        # Free users cannot view premium prompts
         if 'user_id' not in session:
             flash('Please login to view premium prompts!', 'error')
             return redirect(url_for('login'))
         
-        user = User.query.get(session['user_id'])
-        if user.plan not in ['diamond', 'premium']:
+        user = get_current_user()
+        if user and user.plan not in ['diamond', 'premium']:
             flash('Upgrade to Diamond to view premium prompts!', 'error')
             return redirect(url_for('pricing'))
     
@@ -562,7 +508,7 @@ def view_prompt(id):
         is_favorited = Favorite.query.filter_by(user_id=session['user_id'], prompt_id=id).first() is not None
     
     return render_template('view_prompt.html', prompt=prompt, is_favorited=is_favorited)
-    
+
 @app.route('/prompt/<int:id>/delete', methods=['POST'])
 @login_required
 def delete_prompt(id):
@@ -584,10 +530,8 @@ def explore():
     ai_model = request.args.get('ai_model', '')
     show_premium = request.args.get('premium', '')
     
-    # Start with public prompts
     query = Prompt.query.filter_by(visibility='public')
     
-    # Apply filters
     if search:
         query = query.filter(
             (Prompt.title.contains(search)) | 
@@ -601,16 +545,14 @@ def explore():
     if ai_model:
         query = query.filter_by(ai_model=ai_model)
     
-    # Premium filter
     if show_premium == 'true':
         query = query.filter_by(is_premium=True, premium_status='approved')
     
     prompts = query.order_by(Prompt.created_at.desc()).all()
     
-    # Check if user is logged in and their plan
     user_plan = None
     if 'user_id' in session:
-        user = User.query.get(session['user_id'])
+        user = get_current_user()
         user_plan = user.plan if user else None
     
     categories = db.session.query(Prompt.category).filter_by(visibility='public').distinct().all()
@@ -647,7 +589,12 @@ def toggle_favorite(prompt_id):
 @app.route('/upgrade')
 @login_required
 def upgrade():
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
     if user.plan == 'premium':
         flash('You are already a Premium user!', 'info')
         return redirect(url_for('dashboard'))
@@ -657,12 +604,12 @@ def upgrade():
 @login_required
 def create_order():
     data = request.get_json()
-    plan_type = data.get('plan_type', 'monthly')  # 'monthly' or 'annual'
+    plan_type = data.get('plan_type', 'monthly')
     
     if plan_type == 'annual':
-        amount = 3900  # $39 in cents
+        amount = 3900
     else:
-        amount = 500  # $5 in cents
+        amount = 500
     
     order_data = {
         'amount': amount,
@@ -679,6 +626,7 @@ def create_order():
         'key': RAZORPAY_KEY_ID,
         'plan_type': plan_type
     })
+
 @app.route('/payment-success', methods=['POST'])
 @login_required
 def payment_success():
@@ -693,15 +641,20 @@ def payment_success():
             'razorpay_signature': signature
         })
         
-        user = User.query.get(session['user_id'])
-        user.plan = 'premium'
+        if supabase:
+            supabase.table('users').update({
+                'plan': 'premium'
+            }).eq('id', session['user_id']).execute()
+        else:
+            user = User.query.get(session['user_id'])
+            user.plan = 'premium'
         
         payment = Payment(
             payment_id=payment_id,
             order_id=order_id,
             amount=49900,
             status='success',
-            user_id=user.id
+            user_id=session['user_id']
         )
         
         db.session.add(payment)
@@ -720,29 +673,6 @@ def payment_success():
 def payment_success_page():
     return render_template('success.html')
 
-# Initialize database tables on startup
-def init_db():
-    with app.app_context():
-        try:
-            db.create_all()
-            print("=" * 50)
-            print("✅ Database tables created successfully!")
-            print("=" * 50)
-        except Exception as e:
-            print("=" * 50)
-            print(f"❌ Error creating database tables: {e}")
-            print("=" * 50)
-
-# Run initialization
-init_db()
-
-# Add these new routes to your app.py
-
-# Add this near the top with other imports
-from datetime import datetime
-
-# Add these routes BEFORE the "if __name__ == '__main__':" line
-
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -759,11 +689,10 @@ def privacy_policy():
 def terms_of_service():
     return render_template('terms_of_service.html')
 
-
 @app.route('/newsletter')
 def newsletter():
     return render_template('newsletter.html')
-    
+
 @app.route('/pricing')
 def pricing():
     return render_template('pricing.html')
@@ -771,8 +700,6 @@ def pricing():
 @app.route('/newsletter/subscribe', methods=['POST'])
 def newsletter_subscribe():
     email = request.form.get('email')
-    # Here you can add logic to save email to database
-    # For now, just flash a success message
     flash('Thanks for subscribing! Check your inbox for confirmation.', 'success')
     return redirect(url_for('newsletter'))
 
@@ -781,24 +708,20 @@ def blog():
     posts = []
     blog_dir = Path('blog_posts')
     
-    # If folder doesn't exist, show empty
     if not blog_dir.exists():
         return render_template('blog.html', posts=[])
     
-    # Read all .md files
     for file in sorted(blog_dir.glob('*.md'), reverse=True):
         try:
             with open(file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-                # Split metadata and content
                 if content.startswith('---'):
                     parts = content.split('---', 2)
                     if len(parts) >= 3:
                         metadata_text = parts[1]
                         post_content = parts[2]
                         
-                        # Parse metadata
                         metadata = {}
                         for line in metadata_text.strip().split('\n'):
                             if ':' in line:
@@ -917,18 +840,32 @@ def new_bundle():
 @login_required
 def view_bundle(bundle_id):
     bundle = PromptBundle.query.get_or_404(bundle_id)
-    user = User.query.get(session['user_id'])
+    user = get_current_user()  # ✅ Changed
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+
+@app.route('/bundle/<int:bundle_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    user = get_current_user()  # ✅ Changed
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
     if bundle.user_id != session['user_id']:
         flash('Unauthorized access!', 'error')
         return redirect(url_for('bundles'))
     
-    prompts = bundle.get_prompts()
-    share_link = url_for('view_shared_bundle', link=bundle.unique_link, _external=True)
-    
-    return render_template('view_bundle.html', bundle=bundle, prompts=prompts, 
-                         user=user, share_link=share_link)
-
 @app.route('/b/<link>')
 def view_shared_bundle(link):
     """Public route to view shared bundles"""
