@@ -91,6 +91,26 @@ def get_user_by_id(user_id):
     except Exception as e:
         print(f"Error getting user: {e}")
         return None
+
+def get_current_user():
+    """Get current logged-in user (Supabase or local)"""
+    if 'user_id' not in session:
+        return None
+    
+    if supabase:
+        user_data = get_user_by_id(session['user_id'])
+        if not user_data:
+            return None
+        
+        # Convert dict to User-like object
+        class UserProxy:
+            def __init__(self, data):
+                for key, value in data.items():
+                    setattr(self, key, value)
+        
+        return UserProxy(user_data)
+    else:
+        return User.query.get(session['user_id'])
         
 # Database Models
 class User(db.Model):
