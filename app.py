@@ -179,10 +179,19 @@ def admin_required(f):
             flash('Please login to access this page.', 'error')
             return redirect(url_for('login'))
         
-        user = User.query.get(session['user_id'])
-        if not user or not user.is_admin:
-            flash('Admin access required!', 'error')
-            return redirect(url_for('dashboard'))
+        # Try Supabase first
+        if supabase:
+            user_data = get_user_by_id(session['user_id'])
+            if not user_data or not user_data.get('is_admin', False):
+                flash('Admin access required!', 'error')
+                return redirect(url_for('dashboard'))
+        else:
+            # Fallback to local database
+            user = User.query.get(session['user_id'])
+            if not user or not user.is_admin:
+                flash('Admin access required!', 'error')
+                return redirect(url_for('dashboard'))
+        
         return f(*args, **kwargs)
     return decorated_function
 
