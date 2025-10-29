@@ -23,8 +23,8 @@ if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
 db = SQLAlchemy(app)
 
 # Supabase Configuration
-SUPABASE_URL = os.environ.get('https://nokvyxostorjjgcqibbi.supabase.co')
-SUPABASE_KEY = os.environ.get('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5va3Z5eG9zdG9yampnY3FpYmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MTUwMjEsImV4cCI6MjA3NzE5MTAyMX0.zh43GDyOF_FTK5D8TMZLrp4pnFb9Eci7VlN7YBcjbFw')
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
 # 🔍 TEMPORARY DEBUGGING - Baad mein delete kar dena
 print("=" * 50)
