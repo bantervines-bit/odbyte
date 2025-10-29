@@ -190,8 +190,25 @@ def admin_required(f):
 def inject_user():
     """Make current user available to all templates"""
     if 'user_id' in session:
-        current_user = User.query.get(session['user_id'])
-        return dict(current_user=current_user)
+        # Try Supabase first
+        if supabase:
+            user_data = get_user_by_id(session['user_id'])
+            if user_data:
+                class UserObj:
+                    def __init__(self, data):
+                        self.id = data['id']
+                        self.name = data['name']
+                        self.email = data['email']
+                        self.plan = data['plan']
+                        self.is_admin = data.get('is_admin', False)
+                
+                current_user = UserObj(user_data)
+                return dict(current_user=current_user)
+        else:
+            # Fallback to local database
+            current_user = User.query.get(session['user_id'])
+            return dict(current_user=current_user)
+    
     return dict(current_user=None)
 
 def generate_bundle_link():
@@ -323,11 +340,36 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user = User.query.get(session['user_id'])
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
+    print(f"🔵 Dashboard access by user_id: {session.get('user_id')}")
+    
+    # Try Supabase first
+    if supabase:
+        user_data = get_user_by_id(session['user_id'])
+        if not user_data:
+            print("❌ User not found in Supabase")
+            session.clear()
+            flash('Session expired. Please login again.', 'error')
+            return redirect(url_for('login'))
+        
+        print(f"✅ User found: {user_data['name']}")
+        
+        # Convert dict to object for template compatibility
+        class UserObj:
+            def __init__(self, data):
+                self.id = data['id']
+                self.name = data['name']
+                self.email = data['email']
+                self.plan = data['plan']
+                self.is_admin = data.get('is_admin', False)
+        
+        user = UserObj(user_data)
+    else:
+        # Fallback to local database
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            flash('Session expired. Please login again.', 'error')
+            return redirect(url_for('login'))
     
     prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
     prompt_count = len(prompts)
