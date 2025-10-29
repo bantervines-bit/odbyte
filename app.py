@@ -790,7 +790,12 @@ def blog_post(slug):
 @app.route('/bundles')
 @login_required
 def bundles():
-    user = User.query.get(session['user_id'])
+    user = get_current_user()  # ✅ Changed
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
     user_bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).all()
     
     bundle_count = len(user_bundles)
