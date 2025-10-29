@@ -23,8 +23,20 @@ if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
 db = SQLAlchemy(app)
 
 # Supabase Configuration
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+SUPABASE_URL = os.environ.get('https://nokvyxostorjjgcqibbi.supabase.co')
+SUPABASE_KEY = os.environ.get('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5va3Z5eG9zdG9yampnY3FpYmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MTUwMjEsImV4cCI6MjA3NzE5MTAyMX0.zh43GDyOF_FTK5D8TMZLrp4pnFb9Eci7VlN7YBcjbFw')
+
+# 🔍 TEMPORARY DEBUGGING - Baad mein delete kar dena
+print("=" * 50)
+print("🔍 DEBUG: Checking Supabase Credentials")
+print(f"SUPABASE_URL exists: {SUPABASE_URL is not None}")
+print(f"SUPABASE_KEY exists: {SUPABASE_KEY is not None}")
+if SUPABASE_URL:
+    print(f"SUPABASE_URL starts with: {SUPABASE_URL[:30]}...")
+if SUPABASE_KEY:
+    print(f"SUPABASE_KEY starts with: {SUPABASE_KEY[:30]}...")
+print("=" * 50)
+
 supabase: Client = None
 
 if SUPABASE_URL and SUPABASE_KEY:
