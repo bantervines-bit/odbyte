@@ -751,7 +751,6 @@ def blog_post(slug):
         flash('Blog post not found!', 'error')
         return redirect(url_for('blog'))
     
-    # Find post by slug
     for file in blog_dir.glob('*.md'):
         try:
             with open(file, 'r', encoding='utf-8') as f:
@@ -786,11 +785,12 @@ def blog_post(slug):
     
     flash('Blog post not found!', 'error')
     return redirect(url_for('blog'))
+
 # Bundle Routes
 @app.route('/bundles')
 @login_required
 def bundles():
-    user = get_current_user()  # ✅ Changed
+    user = get_current_user()
     if not user:
         session.clear()
         flash('Session expired. Please login again.', 'error')
@@ -807,7 +807,11 @@ def bundles():
 @app.route('/bundle/new', methods=['GET', 'POST'])
 @login_required
 def new_bundle():
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
     current_bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
     max_bundles = 30 if user.plan == 'diamond' else 3
@@ -845,7 +849,7 @@ def new_bundle():
 @login_required
 def view_bundle(bundle_id):
     bundle = PromptBundle.query.get_or_404(bundle_id)
-    user = get_current_user()  # ✅ Changed
+    user = get_current_user()
     
     if not user:
         session.clear()
@@ -855,28 +859,31 @@ def view_bundle(bundle_id):
     if bundle.user_id != session['user_id']:
         flash('Unauthorized access!', 'error')
         return redirect(url_for('bundles'))
+    
+    prompts = bundle.get_prompts()
+    share_link = url_for('view_shared_bundle', link=bundle.unique_link, _external=True)
+    
+    return render_template('view_bundle.html', bundle=bundle, prompts=prompts, 
+                         user=user, share_link=share_link)
 
-@app.route('/bundle/<int:bundle_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_bundle(bundle_id):
-    bundle = PromptBundle.query.get_or_404(bundle_id)
-    user = get_current_user()  # ✅ Changed
-    
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    if bundle.user_id != session['user_id']:
-        flash('Unauthorized access!', 'error')
-        return redirect(url_for('bundles'))
-    
 @app.route('/b/<link>')
 def view_shared_bundle(link):
     """Public route to view shared bundles"""
     bundle = PromptBundle.query.filter_by(unique_link=link).first_or_404()
     prompts = bundle.get_prompts()
-    author = User.query.get(bundle.user_id)
+    
+    if supabase:
+        author_data = get_user_by_id(bundle.user_id)
+        if author_data:
+            class AuthorProxy:
+                def __init__(self, data):
+                    self.id = data['id']
+                    self.name = data['name']
+            author = AuthorProxy(author_data)
+        else:
+            author = None
+    else:
+        author = User.query.get(bundle.user_id)
     
     return render_template('shared_bundle.html', bundle=bundle, prompts=prompts, author=author)
 
@@ -884,7 +891,12 @@ def view_shared_bundle(link):
 @login_required
 def edit_bundle(bundle_id):
     bundle = PromptBundle.query.get_or_404(bundle_id)
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
     
     if bundle.user_id != session['user_id']:
         flash('Unauthorized access!', 'error')
@@ -919,44 +931,47 @@ def delete_bundle(bundle_id):
     db.session.commit()
     flash('Bundle deleted successfully!', 'success')
     return redirect(url_for('bundles'))
-    
+
 @app.route('/prompt/<int:id>/submit-premium', methods=['POST'])
 @login_required
 def submit_premium(id):
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
     prompt = Prompt.query.get_or_404(id)
     
-    # Check if user owns the prompt
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
     if prompt.user_id != session['user_id']:
         flash('Unauthorized access!', 'error')
         return redirect(url_for('dashboard'))
     
-    # Check if user is Diamond
     if user.plan not in ['diamond', 'premium']:
         flash('Only Diamond users can submit premium prompts!', 'error')
         return redirect(url_for('pricing'))
     
-    # Check if already submitted
     if prompt.premium_status != 'none':
         flash('This prompt has already been submitted for premium review!', 'info')
         return redirect(url_for('view_prompt', id=id))
     
-    # Submit for review
     prompt.premium_status = 'pending'
     db.session.commit()
     
     flash('Prompt submitted for premium review! You\'ll be notified once approved.', 'success')
     return redirect(url_for('view_prompt', id=id))
-   
+
 @app.route('/admin')
 @admin_required
 def admin_panel():
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
     
-    # Get pending premium prompts
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
     pending_prompts = Prompt.query.filter_by(premium_status='pending').order_by(Prompt.created_at.desc()).all()
-    
-    # Get all premium prompts
     approved_prompts = Prompt.query.filter_by(premium_status='approved').order_by(Prompt.created_at.desc()).all()
     
     return render_template('admin_panel.html', user=user, 
@@ -969,7 +984,7 @@ def approve_premium(id):
     prompt = Prompt.query.get_or_404(id)
     prompt.premium_status = 'approved'
     prompt.is_premium = True
-    prompt.visibility = 'public'  # Make it public so it appears in explore
+    prompt.visibility = 'public'
     db.session.commit()
     
     flash(f'Premium prompt "{prompt.title}" approved!', 'success')
@@ -997,6 +1012,21 @@ def remove_premium(id):
     flash(f'Premium status removed from "{prompt.title}".', 'info')
     return redirect(url_for('admin_panel'))
 
+# Initialize database tables on startup
+def init_db():
+    with app.app_context():
+        try:
+            db.create_all()
+            print("=" * 50)
+            print("✅ Database tables created successfully!")
+            print("=" * 50)
+        except Exception as e:
+            print("=" * 50)
+            print(f"❌ Error creating database tables: {e}")
+            print("=" * 50)
+
+# Run initialization
+init_db()
 
 if __name__ == '__main__':
     app.run(debug=True)
