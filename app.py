@@ -630,43 +630,21 @@ def create_order():
 @app.route('/payment-success', methods=['POST'])
 @login_required
 def payment_success():
-    payment_id = request.form.get('razorpay_payment_id')
-    order_id = request.form.get('razorpay_order_id')
-    signature = request.form.get('razorpay_signature')
+    # ... payment verification ...
     
-    try:
-        razorpay_client.utility.verify_payment_signature({
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        })
-        
-        if supabase:
-            supabase.table('users').update({
-                'plan': 'premium'
-            }).eq('id', session['user_id']).execute()
-        else:
-            user = User.query.get(session['user_id'])
-            user.plan = 'premium'
-        
-        payment = Payment(
-            payment_id=payment_id,
-            order_id=order_id,
-            amount=49900,
-            status='success',
-            user_id=session['user_id']
-        )
-        
-        db.session.add(payment)
-        db.session.commit()
-        
-        session['user_plan'] = 'premium'
-        flash('Payment successful! Welcome to Premium!', 'success')
-        return redirect(url_for('payment_success_page'))
+    # ❌ PROBLEM: Payment record mein user_id from session le raha hai
+    # Lekin Supabase mein user hai, local DB mein nahi!
     
-    except:
-        flash('Payment verification failed!', 'error')
-        return redirect(url_for('upgrade'))
+    payment = Payment(
+        payment_id=payment_id,
+        order_id=order_id,
+        amount=49900,  # ❌ Fixed amount, plan_type se calculate nahi kar raha
+        status='success',
+        user_id=session['user_id']  # ✅ This is fine
+    )
+    
+    db.session.add(payment)
+    db.session.commit()
 
 @app.route('/success')
 @login_required
