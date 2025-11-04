@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
 from datetime import datetime
-import razorpay
+import stripe
 import markdown
 from pathlib import Path
 import secrets
@@ -42,14 +42,459 @@ if SUPABASE_URL and SUPABASE_KEY:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         print("✅ Supabase connected successfully!")
     except Exception as e:
-        print(f"❌ Supabase connection failed: {e}")
+        print(f"Error verifying payment: {e}")
+        flash('Error verifying payment. Please contact support.', 'error')
+        return redirect(url_for('pricing'))
+
+@app.route('/payment-cancelled')
+@login_required
+def payment_cancelled():
+    flash('Payment was cancelled. No charges were made.', 'info')
+    return redirect(url_for('pricing'))
+
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except ValueError:
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError:
+        return 'Invalid signature', 400
+    
+    if event['type'] == 'checkout.session.completed':
+        session_data = event['data']['object']
+        user_id = int(session_data['metadata']['user_id'])
+        plan = session_data['metadata']['plan']
+        
+        if supabase:
+            supabase.table('users').update({'plan': plan}).eq('id', user_id).execute()
+        else:
+            user = User.query.get(user_id)
+            if user:
+                user.plan = plan
+                db.session.commit()
+    
+    return '', 200
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    return render_template('privacy_policy.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    return render_template('terms_of_service.html')
+
+@app.route('/newsletter')
+def newsletter():
+    return render_template('newsletter.html')
+
+@app.route('/pricing')
+def pricing():
+    return render_template('pricing.html')
+
+@app.route('/newsletter/subscribe', methods=['POST'])
+def newsletter_subscribe():
+    email = request.form.get('email')
+    flash('Thanks for subscribing! Check your inbox for confirmation.', 'success')
+    return redirect(url_for('newsletter'))
+
+@app.route('/blog')
+def blog():
+    posts = []
+    blog_dir = Path('blog_posts')
+    
+    if not blog_dir.exists():
+        return render_template('blog.html', posts=[])
+    
+    for file in sorted(blog_dir.glob('*.md'), reverse=True):
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+                if content.startswith('---'):
+                    parts = content.split('---', 2)
+                    if len(parts) >= 3:
+                        metadata_text = parts[1]
+                        post_content = parts[2]
+                        
+                        metadata = {}
+                        for line in metadata_text.strip().split('\n'):
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                metadata[key.strip()] = value.strip()
+                        
+                        posts.append({
+                            'title': metadata.get('title', 'Untitled'),
+                            'slug': metadata.get('slug', ''),
+                            'date': metadata.get('date', ''),
+                            'author': metadata.get('author', 'ODByte Team'),
+                            'category': metadata.get('category', 'General'),
+                            'excerpt': metadata.get('excerpt', ''),
+                            'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
+                        })
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+            continue
+    
+    return render_template('blog.html', posts=posts)
+
+@app.route('/blog/<slug>')
+def blog_post(slug):
+    blog_dir = Path('blog_posts')
+    
+    if not blog_dir.exists():
+        flash('Blog post not found!', 'error')
+        return redirect(url_for('blog'))
+    
+    for file in blog_dir.glob('*.md'):
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+                if content.startswith('---'):
+                    parts = content.split('---', 2)
+                    if len(parts) >= 3:
+                        metadata_text = parts[1]
+                        post_content = parts[2]
+                        
+                        metadata = {}
+                        for line in metadata_text.strip().split('\n'):
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                metadata[key.strip()] = value.strip()
+                        
+                        if metadata.get('slug') == slug:
+                            post = {
+                                'title': metadata.get('title', 'Untitled'),
+                                'slug': metadata.get('slug', ''),
+                                'date': metadata.get('date', ''),
+                                'author': metadata.get('author', 'ODByte Team'),
+                                'category': metadata.get('category', 'General'),
+                                'excerpt': metadata.get('excerpt', ''),
+                                'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
+                            }
+                            return render_template('blog_post_template.html', post=post)
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+            continue
+    
+    flash('Blog post not found!', 'error')
+    return redirect(url_for('blog'))
+
+# Bundle Routes
+@app.route('/bundles')
+@login_required
+def bundles():
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    user_bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).all()
+    bundle_count = len(user_bundles)
+    
+    plan_limits = get_plan_limits(user.plan)
+    max_bundles = plan_limits['bundles']
+    
+    if max_bundles == float('inf'):
+        max_bundles = 'Unlimited'
+    
+    return render_template('bundles.html', user=user, bundles=user_bundles, 
+                         bundle_count=bundle_count, max_bundles=max_bundles)
+
+@app.route('/bundle/new', methods=['GET', 'POST'])
+@login_required
+def new_bundle():
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    current_bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
+    plan_limits = get_plan_limits(user.plan)
+    max_bundles = plan_limits['bundles']
+    
+    if max_bundles != float('inf') and current_bundle_count >= max_bundles:
+        if user.plan in ['silver', 'free']:
+            flash('Silver plan limit reached! Upgrade to Gold for 30 bundles/month.', 'error')
+        elif user.plan == 'gold':
+            flash('Gold plan limit reached! Upgrade to Diamond for 200 bundles/month.', 'error')
+        elif user.plan == 'diamond':
+            flash('Diamond plan limit reached! Contact us for Custom unlimited plan.', 'info')
+        return redirect(url_for('pricing'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        selected_prompts = request.form.getlist('prompts')
+        
+        new_bundle = PromptBundle(
+            title=title,
+            description=description,
+            unique_link=generate_bundle_link(),
+            user_id=user.id,
+            prompt_ids=','.join(selected_prompts) if selected_prompts else ''
+        )
+        
+        db.session.add(new_bundle)
+        db.session.commit()
+        
+        if user.plan == 'custom':
+            flash(f'Bundle created successfully!', 'success')
+        else:
+            flash(f'Bundle created successfully! ({current_bundle_count + 1}/{max_bundles} bundles used)', 'success')
+        
+        return redirect(url_for('view_bundle', bundle_id=new_bundle.id))
+    
+    user_prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
+    
+    return render_template('new_bundle.html', user=user, prompts=user_prompts, 
+                         bundle_count=current_bundle_count, max_bundles=max_bundles)
+
+@app.route('/bundle/<int:bundle_id>')
+@login_required
+def view_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    user = get_current_user()
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+    
+    prompts = bundle.get_prompts()
+    share_link = url_for('view_shared_bundle', link=bundle.unique_link, _external=True)
+    
+    return render_template('view_bundle.html', bundle=bundle, prompts=prompts, 
+                         user=user, share_link=share_link)
+
+@app.route('/b/<link>')
+def view_shared_bundle(link):
+    """Public route to view shared bundles"""
+    bundle = PromptBundle.query.filter_by(unique_link=link).first_or_404()
+    prompts = bundle.get_prompts()
+    
+    if supabase:
+        author_data = get_user_by_id(bundle.user_id)
+        if author_data:
+            class AuthorProxy:
+                def __init__(self, data):
+                    self.id = data['id']
+                    self.name = data['name']
+            author = AuthorProxy(author_data)
+        else:
+            author = None
+    else:
+        author = User.query.get(bundle.user_id)
+    
+    return render_template('shared_bundle.html', bundle=bundle, prompts=prompts, author=author)
+
+@app.route('/bundle/<int:bundle_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    user = get_current_user()
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+    
+    if request.method == 'POST':
+        bundle.title = request.form.get('title')
+        bundle.description = request.form.get('description')
+        selected_prompts = request.form.getlist('prompts')
+        bundle.prompt_ids = ','.join(selected_prompts) if selected_prompts else ''
+        
+        db.session.commit()
+        flash('Bundle updated successfully!', 'success')
+        return redirect(url_for('view_bundle', bundle_id=bundle.id))
+    
+    user_prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
+    current_prompt_ids = [int(id) for id in bundle.prompt_ids.split(',') if id]
+    
+    return render_template('edit_bundle.html', bundle=bundle, prompts=user_prompts, 
+                         current_prompt_ids=current_prompt_ids, user=user)
+
+@app.route('/bundle/<int:bundle_id>/delete', methods=['POST'])
+@login_required
+def delete_bundle(bundle_id):
+    bundle = PromptBundle.query.get_or_404(bundle_id)
+    
+    if bundle.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('bundles'))
+    
+    db.session.delete(bundle)
+    db.session.commit()
+    flash('Bundle deleted successfully!', 'success')
+    return redirect(url_for('bundles'))
+
+@app.route('/prompt/<int:id>/submit-premium', methods=['POST'])
+@login_required
+def submit_premium(id):
+    user = get_current_user()
+    prompt = Prompt.query.get_or_404(id)
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    if prompt.user_id != session['user_id']:
+        flash('Unauthorized access!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if user.plan not in ['gold', 'diamond', 'custom']:
+        flash('Only Gold+ users can submit premium prompts!', 'error')
+        return redirect(url_for('pricing'))
+    
+    if prompt.premium_status != 'none':
+        flash('This prompt has already been submitted for premium review!', 'info')
+        return redirect(url_for('view_prompt', id=id))
+    
+    prompt.premium_status = 'pending'
+    db.session.commit()
+    
+    flash('Prompt submitted for premium review! You\'ll be notified once approved.', 'success')
+    return redirect(url_for('view_prompt', id=id))
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    user = get_current_user()
+    
+    if not user:
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login'))
+    
+    pending_prompts = Prompt.query.filter_by(premium_status='pending').order_by(Prompt.created_at.desc()).all()
+    approved_prompts = Prompt.query.filter_by(premium_status='approved').order_by(Prompt.created_at.desc()).all()
+    
+    return render_template('admin_panel.html', user=user, 
+                         pending_prompts=pending_prompts, 
+                         approved_prompts=approved_prompts)
+
+@app.route('/admin/prompt/<int:id>/approve', methods=['POST'])
+@admin_required
+def approve_premium(id):
+    prompt = Prompt.query.get_or_404(id)
+    prompt.premium_status = 'approved'
+    prompt.is_premium = True
+    prompt.visibility = 'public'
+    db.session.commit()
+    
+    flash(f'Premium prompt "{prompt.title}" approved!', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/prompt/<int:id>/reject', methods=['POST'])
+@admin_required
+def reject_premium(id):
+    prompt = Prompt.query.get_or_404(id)
+    prompt.premium_status = 'rejected'
+    prompt.is_premium = False
+    db.session.commit()
+    
+    flash(f'Premium prompt "{prompt.title}" rejected.', 'info')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/prompt/<int:id>/remove-premium', methods=['POST'])
+@admin_required
+def remove_premium(id):
+    prompt = Prompt.query.get_or_404(id)
+    prompt.premium_status = 'none'
+    prompt.is_premium = False
+    db.session.commit()
+    
+    flash(f'Premium status removed from "{prompt.title}".', 'info')
+    return redirect(url_for('admin_panel'))
+
+# Initialize database tables on startup
+def init_db():
+    with app.app_context():
+        try:
+            db.create_all()
+            print("=" * 50)
+            print("✅ Database tables created successfully!")
+            print("=" * 50)
+        except Exception as e:
+            print("=" * 50)
+            print(f"❌ Error creating database tables: {e}")
+            print("=" * 50)
+
+# Run initialization
+init_db()
+
+if __name__ == '__main__':
+    app.run(debug=True)f"❌ Supabase connection failed: {e}")
 else:
     print("⚠️ Supabase credentials not found, using local database")
 
-# Razorpay Configuration
-RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_your_key_id')
-RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'your_key_secret')
-razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+# Stripe Configuration
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_...')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_...')
+stripe.api_key = STRIPE_SECRET_KEY
+
+# Plan Limits Configuration
+PLAN_LIMITS = {
+    'free': {
+        'prompts': 10,
+        'bundles': 3,
+        'private': False,
+        'display_name': 'Silver'
+    },
+    'silver': {
+        'prompts': 10,
+        'bundles': 3,
+        'private': False,
+        'display_name': 'Silver'
+    },
+    'gold': {
+        'prompts': 200,
+        'bundles': 30,
+        'private': True,
+        'display_name': 'Gold'
+    },
+    'diamond': {
+        'prompts': 1000,
+        'bundles': 200,
+        'private': True,
+        'display_name': 'Diamond'
+    },
+    'custom': {
+        'prompts': float('inf'),
+        'bundles': float('inf'),
+        'private': True,
+        'display_name': 'Custom'
+    }
+}
+
+def get_plan_limits(plan):
+    """Get plan limits for a user plan"""
+    return PLAN_LIMITS.get(plan, PLAN_LIMITS['free'])
 
 # Supabase Helper Functions
 def get_user_by_email(email):
@@ -154,7 +599,7 @@ class Payment(db.Model):
     payment_id = db.Column(db.String(200), nullable=False)
     order_id = db.Column(db.String(200))
     amount = db.Column(db.Integer, nullable=False)
-    currency = db.Column(db.String(10), default='INR')
+    currency = db.Column(db.String(10), default='USD')
     status = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -356,8 +801,11 @@ def dashboard():
     bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).limit(5).all()
     bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
     
+    plan_info = get_plan_limits(user.plan)
+    
     return render_template('dashboard.html', user=user, prompts=prompts, 
-                         prompt_count=prompt_count, bundles=bundles, bundle_count=bundle_count)
+                         prompt_count=prompt_count, bundles=bundles, 
+                         bundle_count=bundle_count, plan_info=plan_info)
 
 @app.route('/prompt/new', methods=['GET', 'POST'])
 @login_required
@@ -370,19 +818,21 @@ def new_prompt():
     
     if request.method == 'POST':
         current_prompt_count = Prompt.query.filter_by(user_id=user.id).count()
+        plan_limits = get_plan_limits(user.plan)
         
-        if user.plan == 'silver':
+        # Check limits
+        if user.plan in ['silver', 'free']:
             if current_prompt_count >= 10:
-                flash('Silver plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
+                flash('Silver plan limit reached! Upgrade to Gold for 200 prompts/month.', 'error')
+                return redirect(url_for('pricing'))
+        elif user.plan == 'gold':
+            if current_prompt_count >= 200:
+                flash('Gold plan limit reached! Upgrade to Diamond for 1,000 prompts/month.', 'error')
                 return redirect(url_for('pricing'))
         elif user.plan == 'diamond':
-            if current_prompt_count >= 200:
-                flash('Monthly limit reached (200 prompts). Limit resets next month.', 'error')
-                return redirect(url_for('dashboard'))
-        else:
-            if current_prompt_count >= 10:
-                flash('Free plan limit reached! Upgrade to Diamond for 200 prompts/month.', 'error')
-                return redirect(url_for('pricing'))
+            if current_prompt_count >= 1000:
+                flash('Diamond plan limit reached! Contact us for Custom plan.', 'info')
+                return redirect(url_for('contact'))
         
         title = request.form.get('title')
         description = request.form.get('description')
@@ -399,7 +849,8 @@ def new_prompt():
         
         visibility = request.form.get('visibility', 'public')
         
-        if user.plan != 'diamond':
+        # Only Gold, Diamond, Custom can create private
+        if not plan_limits['private']:
             visibility = 'public'
         
         new_prompt_obj = Prompt(
@@ -419,8 +870,12 @@ def new_prompt():
         new_count = current_prompt_count + 1
         
         if user.plan == 'diamond':
+            flash(f'Prompt saved! ({new_count}/1,000 Diamond prompts used)', 'success')
+        elif user.plan == 'gold':
             visibility_text = "private" if visibility == "private" else "public"
-            flash(f'Prompt saved as {visibility_text}! ({new_count}/200 Diamond prompts used)', 'success')
+            flash(f'Prompt saved as {visibility_text}! ({new_count}/200 Gold prompts used)', 'success')
+        elif user.plan == 'custom':
+            flash(f'Prompt saved successfully!', 'success')
         else:
             flash(f'Prompt saved as public! ({new_count}/10 Silver prompts used)', 'success')
         
@@ -452,8 +907,9 @@ def edit_prompt(id):
         prompt.ai_model = request.form.get('ai_model')
         
         visibility = request.form.get('visibility', 'public')
+        plan_limits = get_plan_limits(user.plan)
         
-        if user.plan == 'silver':
+        if not plan_limits['private']:
             prompt.visibility = 'public'
         else:
             prompt.visibility = visibility
@@ -473,7 +929,7 @@ def bulk_upload():
         flash('Session expired. Please login again.', 'error')
         return redirect(url_for('login'))
     
-    if user.plan != 'diamond':
+    if user.plan not in ['diamond', 'custom']:
         flash('Bulk upload is a Diamond feature. Upgrade to access it!', 'error')
         return redirect(url_for('pricing'))
     
@@ -499,8 +955,8 @@ def view_prompt(id):
             return redirect(url_for('login'))
         
         user = get_current_user()
-        if user and user.plan not in ['diamond', 'premium']:
-            flash('Upgrade to Diamond to view premium prompts!', 'error')
+        if user and user.plan not in ['gold', 'diamond', 'custom']:
+            flash('Upgrade to Gold to view premium prompts!', 'error')
             return redirect(url_for('pricing'))
     
     is_favorited = False
@@ -586,425 +1042,102 @@ def toggle_favorite(prompt_id):
         db.session.commit()
         return jsonify({'status': 'added', 'message': 'Added to favorites'})
 
-@app.route('/upgrade')
+# Stripe Payment Routes
+@app.route('/create-checkout-session', methods=['POST'])
 @login_required
-def upgrade():
-    user = get_current_user()
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    if user.plan == 'premium':
-        flash('You are already a Premium user!', 'info')
-        return redirect(url_for('dashboard'))
-    return render_template('upgrade.html', razorpay_key=RAZORPAY_KEY_ID)
-
-@app.route('/create-order', methods=['POST'])
-@login_required
-def create_order():
-    data = request.get_json()
-    plan_type = data.get('plan_type', 'monthly')
-    
-    if plan_type == 'annual':
-        amount = 3900
-    else:
-        amount = 500
-    
-    order_data = {
-        'amount': amount,
-        'currency': 'USD',
-        'payment_capture': 1
-    }
-    
-    order = razorpay_client.order.create(data=order_data)
-    
-    return jsonify({
-        'order_id': order['id'],
-        'amount': amount,
-        'currency': 'USD',
-        'key': RAZORPAY_KEY_ID,
-        'plan_type': plan_type
-    })
-
-@app.route('/payment-success', methods=['POST'])
-@login_required
-def payment_success():
-    # ... payment verification ...
-    
-    # ❌ PROBLEM: Payment record mein user_id from session le raha hai
-    # Lekin Supabase mein user hai, local DB mein nahi!
-    
-    payment = Payment(
-        payment_id=payment_id,
-        order_id=order_id,
-        amount=49900,  # ❌ Fixed amount, plan_type se calculate nahi kar raha
-        status='success',
-        user_id=session['user_id']  # ✅ This is fine
-    )
-    
-    db.session.add(payment)
-    db.session.commit()
-
-@app.route('/success')
-@login_required
-def payment_success_page():
-    return render_template('success.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-@app.route('/privacy-policy')
-def privacy_policy():
-    return render_template('privacy_policy.html')
-
-@app.route('/terms-of-service')
-def terms_of_service():
-    return render_template('terms_of_service.html')
-
-@app.route('/newsletter')
-def newsletter():
-    return render_template('newsletter.html')
-
-@app.route('/pricing')
-def pricing():
-    return render_template('pricing.html')
-
-@app.route('/newsletter/subscribe', methods=['POST'])
-def newsletter_subscribe():
-    email = request.form.get('email')
-    flash('Thanks for subscribing! Check your inbox for confirmation.', 'success')
-    return redirect(url_for('newsletter'))
-
-@app.route('/blog')
-def blog():
-    posts = []
-    blog_dir = Path('blog_posts')
-    
-    if not blog_dir.exists():
-        return render_template('blog.html', posts=[])
-    
-    for file in sorted(blog_dir.glob('*.md'), reverse=True):
-        try:
-            with open(file, 'r', encoding='utf-8') as f:
-                content = f.read()
-                
-                if content.startswith('---'):
-                    parts = content.split('---', 2)
-                    if len(parts) >= 3:
-                        metadata_text = parts[1]
-                        post_content = parts[2]
-                        
-                        metadata = {}
-                        for line in metadata_text.strip().split('\n'):
-                            if ':' in line:
-                                key, value = line.split(':', 1)
-                                metadata[key.strip()] = value.strip()
-                        
-                        posts.append({
-                            'title': metadata.get('title', 'Untitled'),
-                            'slug': metadata.get('slug', ''),
-                            'date': metadata.get('date', ''),
-                            'author': metadata.get('author', 'ODByte Team'),
-                            'category': metadata.get('category', 'General'),
-                            'excerpt': metadata.get('excerpt', ''),
-                            'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
-                        })
-        except Exception as e:
-            print(f"Error reading {file}: {e}")
-            continue
-    
-    return render_template('blog.html', posts=posts)
-
-@app.route('/blog/<slug>')
-def blog_post(slug):
-    blog_dir = Path('blog_posts')
-    
-    if not blog_dir.exists():
-        flash('Blog post not found!', 'error')
-        return redirect(url_for('blog'))
-    
-    for file in blog_dir.glob('*.md'):
-        try:
-            with open(file, 'r', encoding='utf-8') as f:
-                content = f.read()
-                
-                if content.startswith('---'):
-                    parts = content.split('---', 2)
-                    if len(parts) >= 3:
-                        metadata_text = parts[1]
-                        post_content = parts[2]
-                        
-                        metadata = {}
-                        for line in metadata_text.strip().split('\n'):
-                            if ':' in line:
-                                key, value = line.split(':', 1)
-                                metadata[key.strip()] = value.strip()
-                        
-                        if metadata.get('slug') == slug:
-                            post = {
-                                'title': metadata.get('title', 'Untitled'),
-                                'slug': metadata.get('slug', ''),
-                                'date': metadata.get('date', ''),
-                                'author': metadata.get('author', 'ODByte Team'),
-                                'category': metadata.get('category', 'General'),
-                                'excerpt': metadata.get('excerpt', ''),
-                                'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
-                            }
-                            return render_template('blog_post_template.html', post=post)
-        except Exception as e:
-            print(f"Error reading {file}: {e}")
-            continue
-    
-    flash('Blog post not found!', 'error')
-    return redirect(url_for('blog'))
-
-# Bundle Routes
-@app.route('/bundles')
-@login_required
-def bundles():
-    user = get_current_user()
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    user_bundles = PromptBundle.query.filter_by(user_id=user.id).order_by(PromptBundle.created_at.desc()).all()
-    
-    bundle_count = len(user_bundles)
-    max_bundles = 30 if user.plan == 'diamond' else 3
-    
-    return render_template('bundles.html', user=user, bundles=user_bundles, 
-                         bundle_count=bundle_count, max_bundles=max_bundles)
-
-@app.route('/bundle/new', methods=['GET', 'POST'])
-@login_required
-def new_bundle():
-    user = get_current_user()
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    current_bundle_count = PromptBundle.query.filter_by(user_id=user.id).count()
-    max_bundles = 30 if user.plan == 'diamond' else 3
-    
-    if current_bundle_count >= max_bundles:
-        plan_name = "Diamond" if user.plan == 'diamond' else "Free"
-        flash(f'{plan_name} plan limit reached! You can create {max_bundles} bundles per month.', 'error')
-        return redirect(url_for('bundles'))
-    
-    if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
-        selected_prompts = request.form.getlist('prompts')
+def create_checkout_session():
+    try:
+        data = request.get_json()
+        plan_type = data.get('plan_type')
         
-        new_bundle = PromptBundle(
-            title=title,
-            description=description,
-            unique_link=generate_bundle_link(),
-            user_id=user.id,
-            prompt_ids=','.join(selected_prompts) if selected_prompts else ''
+        prices = {
+            'gold-monthly': {'amount': 500, 'name': 'Gold Plan - Monthly', 'plan': 'gold'},
+            'gold-yearly': {'amount': 3900, 'name': 'Gold Plan - Annual', 'plan': 'gold'},
+            'diamond-monthly': {'amount': 1900, 'name': 'Diamond Plan - Monthly', 'plan': 'diamond'},
+            'diamond-yearly': {'amount': 17900, 'name': 'Diamond Plan - Annual', 'plan': 'diamond'}
+        }
+        
+        if plan_type not in prices:
+            return jsonify({'error': 'Invalid plan type'}), 400
+        
+        plan_info = prices[plan_type]
+        
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'unit_amount': plan_info['amount'],
+                    'product_data': {
+                        'name': plan_info['name'],
+                        'description': f'ODByte {plan_info["plan"].title()} Plan Subscription',
+                    },
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('payment_cancelled', _external=True),
+            client_reference_id=str(session['user_id']),
+            metadata={
+                'user_id': str(session['user_id']),
+                'plan': plan_info['plan'],
+                'plan_type': plan_type
+            }
         )
         
-        db.session.add(new_bundle)
-        db.session.commit()
+        return jsonify({
+            'sessionId': checkout_session.id,
+            'publishableKey': STRIPE_PUBLISHABLE_KEY
+        })
         
-        flash(f'Bundle created successfully! ({current_bundle_count + 1}/{max_bundles} bundles used)', 'success')
-        return redirect(url_for('view_bundle', bundle_id=new_bundle.id))
-    
-    user_prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
-    
-    return render_template('new_bundle.html', user=user, prompts=user_prompts, 
-                         bundle_count=current_bundle_count, max_bundles=max_bundles)
+    except Exception as e:
+        print(f"Error creating checkout session: {e}")
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/bundle/<int:bundle_id>')
+@app.route('/payment-success')
 @login_required
-def view_bundle(bundle_id):
-    bundle = PromptBundle.query.get_or_404(bundle_id)
-    user = get_current_user()
+def payment_success():
+    session_id = request.args.get('session_id')
     
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    if bundle.user_id != session['user_id']:
-        flash('Unauthorized access!', 'error')
-        return redirect(url_for('bundles'))
-    
-    prompts = bundle.get_prompts()
-    share_link = url_for('view_shared_bundle', link=bundle.unique_link, _external=True)
-    
-    return render_template('view_bundle.html', bundle=bundle, prompts=prompts, 
-                         user=user, share_link=share_link)
-
-@app.route('/b/<link>')
-def view_shared_bundle(link):
-    """Public route to view shared bundles"""
-    bundle = PromptBundle.query.filter_by(unique_link=link).first_or_404()
-    prompts = bundle.get_prompts()
-    
-    if supabase:
-        author_data = get_user_by_id(bundle.user_id)
-        if author_data:
-            class AuthorProxy:
-                def __init__(self, data):
-                    self.id = data['id']
-                    self.name = data['name']
-            author = AuthorProxy(author_data)
-        else:
-            author = None
-    else:
-        author = User.query.get(bundle.user_id)
-    
-    return render_template('shared_bundle.html', bundle=bundle, prompts=prompts, author=author)
-
-@app.route('/bundle/<int:bundle_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_bundle(bundle_id):
-    bundle = PromptBundle.query.get_or_404(bundle_id)
-    user = get_current_user()
-    
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    if bundle.user_id != session['user_id']:
-        flash('Unauthorized access!', 'error')
-        return redirect(url_for('bundles'))
-    
-    if request.method == 'POST':
-        bundle.title = request.form.get('title')
-        bundle.description = request.form.get('description')
-        selected_prompts = request.form.getlist('prompts')
-        bundle.prompt_ids = ','.join(selected_prompts) if selected_prompts else ''
-        
-        db.session.commit()
-        flash('Bundle updated successfully!', 'success')
-        return redirect(url_for('view_bundle', bundle_id=bundle.id))
-    
-    user_prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).all()
-    current_prompt_ids = [int(id) for id in bundle.prompt_ids.split(',') if id]
-    
-    return render_template('edit_bundle.html', bundle=bundle, prompts=user_prompts, 
-                         current_prompt_ids=current_prompt_ids, user=user)
-
-@app.route('/bundle/<int:bundle_id>/delete', methods=['POST'])
-@login_required
-def delete_bundle(bundle_id):
-    bundle = PromptBundle.query.get_or_404(bundle_id)
-    
-    if bundle.user_id != session['user_id']:
-        flash('Unauthorized access!', 'error')
-        return redirect(url_for('bundles'))
-    
-    db.session.delete(bundle)
-    db.session.commit()
-    flash('Bundle deleted successfully!', 'success')
-    return redirect(url_for('bundles'))
-
-@app.route('/prompt/<int:id>/submit-premium', methods=['POST'])
-@login_required
-def submit_premium(id):
-    user = get_current_user()
-    prompt = Prompt.query.get_or_404(id)
-    
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    if prompt.user_id != session['user_id']:
-        flash('Unauthorized access!', 'error')
-        return redirect(url_for('dashboard'))
-    
-    if user.plan not in ['diamond', 'premium']:
-        flash('Only Diamond users can submit premium prompts!', 'error')
+    if not session_id:
+        flash('Invalid payment session!', 'error')
         return redirect(url_for('pricing'))
     
-    if prompt.premium_status != 'none':
-        flash('This prompt has already been submitted for premium review!', 'info')
-        return redirect(url_for('view_prompt', id=id))
-    
-    prompt.premium_status = 'pending'
-    db.session.commit()
-    
-    flash('Prompt submitted for premium review! You\'ll be notified once approved.', 'success')
-    return redirect(url_for('view_prompt', id=id))
-
-@app.route('/admin')
-@admin_required
-def admin_panel():
-    user = get_current_user()
-    
-    if not user:
-        session.clear()
-        flash('Session expired. Please login again.', 'error')
-        return redirect(url_for('login'))
-    
-    pending_prompts = Prompt.query.filter_by(premium_status='pending').order_by(Prompt.created_at.desc()).all()
-    approved_prompts = Prompt.query.filter_by(premium_status='approved').order_by(Prompt.created_at.desc()).all()
-    
-    return render_template('admin_panel.html', user=user, 
-                         pending_prompts=pending_prompts, 
-                         approved_prompts=approved_prompts)
-
-@app.route('/admin/prompt/<int:id>/approve', methods=['POST'])
-@admin_required
-def approve_premium(id):
-    prompt = Prompt.query.get_or_404(id)
-    prompt.premium_status = 'approved'
-    prompt.is_premium = True
-    prompt.visibility = 'public'
-    db.session.commit()
-    
-    flash(f'Premium prompt "{prompt.title}" approved!', 'success')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/prompt/<int:id>/reject', methods=['POST'])
-@admin_required
-def reject_premium(id):
-    prompt = Prompt.query.get_or_404(id)
-    prompt.premium_status = 'rejected'
-    prompt.is_premium = False
-    db.session.commit()
-    
-    flash(f'Premium prompt "{prompt.title}" rejected.', 'info')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/prompt/<int:id>/remove-premium', methods=['POST'])
-@admin_required
-def remove_premium(id):
-    prompt = Prompt.query.get_or_404(id)
-    prompt.premium_status = 'none'
-    prompt.is_premium = False
-    db.session.commit()
-    
-    flash(f'Premium status removed from "{prompt.title}".', 'info')
-    return redirect(url_for('admin_panel'))
-
-# Initialize database tables on startup
-def init_db():
-    with app.app_context():
-        try:
-            db.create_all()
-            print("=" * 50)
-            print("✅ Database tables created successfully!")
-            print("=" * 50)
-        except Exception as e:
-            print("=" * 50)
-            print(f"❌ Error creating database tables: {e}")
-            print("=" * 50)
-
-# Run initialization
-init_db()
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    try:
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        
+        if checkout_session.payment_status == 'paid':
+            user_id = int(checkout_session.metadata['user_id'])
+            plan = checkout_session.metadata['plan']
+            
+            if supabase:
+                supabase.table('users').update({'plan': plan}).eq('id', user_id).execute()
+            else:
+                user = User.query.get(user_id)
+                if user:
+                    user.plan = plan
+                    db.session.commit()
+            
+            payment = Payment(
+                payment_id=checkout_session.payment_intent,
+                order_id=session_id,
+                amount=checkout_session.amount_total,
+                currency=checkout_session.currency.upper(),
+                status='success',
+                user_id=user_id
+            )
+            
+            db.session.add(payment)
+            db.session.commit()
+            
+            session['user_plan'] = plan
+            
+            flash(f'🎉 Payment successful! Welcome to {plan.title()} Plan!', 'success')
+            return render_template('payment_success.html', plan=plan)
+        else:
+            flash('Payment not completed!', 'error')
+            return redirect(url_for('pricing'))
+            
+    except Exception as e:
+        print(
