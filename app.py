@@ -432,25 +432,6 @@ def remove_premium(id):
     flash(f'Premium status removed from "{prompt.title}".', 'info')
     return redirect(url_for('admin_panel'))
 
-# Initialize database tables on startup
-def init_db():
-    with app.app_context():
-        try:
-            db.create_all()
-            print("=" * 50)
-            print("✅ Database tables created successfully!")
-            print("=" * 50)
-        except Exception as e:
-            print("=" * 50)
-            print(f"❌ Error creating database tables: {e}")
-            print("=" * 50)
-
-# Run initialization
-init_db()
-
-if __name__ == '__main__':
-app.run(debug=True)
-    print("⚠️ Supabase credentials not found, using local database")
 
 # Stripe Configuration
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_...')
@@ -459,12 +440,6 @@ stripe.api_key = STRIPE_SECRET_KEY
 
 # Plan Limits Configuration
 PLAN_LIMITS = {
-    'free': {
-        'prompts': 10,
-        'bundles': 3,
-        'private': False,
-        'display_name': 'Silver'
-    },
     'silver': {
         'prompts': 10,
         'bundles': 3,
@@ -1150,41 +1125,6 @@ def payment_success():
         flash('Error verifying payment. Please contact support.', 'error')
         return redirect(url_for('pricing'))
 
-
-@app.route('/payment-cancelled')
-@login_required
-def payment_cancelled():
-    flash('Payment was cancelled. No charges were made.', 'info')
-    return redirect(url_for('pricing'))
-
-
-@app.route('/stripe-webhook', methods=['POST'])
-def stripe_webhook():
-    payload = request.get_data(as_text=True)
-    sig_header = request.headers.get('Stripe-Signature')
-    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
-    
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-    except ValueError:
-        return 'Invalid payload', 400
-    except stripe.error.SignatureVerificationError:
-        return 'Invalid signature', 400
-    
-    if event['type'] == 'checkout.session.completed':
-        session_data = event['data']['object']
-        user_id = int(session_data['metadata']['user_id'])
-        plan = session_data['metadata']['plan']
-        
-        if supabase:
-            supabase.table('users').update({'plan': plan}).eq('id', user_id).execute()
-        else:
-            user = User.query.get(user_id)
-            if user:
-                user.plan = plan
-                db.session.commit()
-    
-    return '', 200
     # Initialize database tables on startup
 def init_db():
     with app.app_context():
