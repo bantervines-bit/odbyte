@@ -449,8 +449,7 @@ def init_db():
 init_db()
 
 if __name__ == '__main__':
-    app.run(debug=True)f"❌ Supabase connection failed: {e}")
-else:
+app.run(debug=True)
     print("⚠️ Supabase credentials not found, using local database")
 
 # Stripe Configuration
@@ -1105,20 +1104,26 @@ def payment_success():
         return redirect(url_for('pricing'))
     
     try:
+        # Retrieve the session from Stripe
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         
         if checkout_session.payment_status == 'paid':
             user_id = int(checkout_session.metadata['user_id'])
             plan = checkout_session.metadata['plan']
             
+            # Update user plan in Supabase
             if supabase:
-                supabase.table('users').update({'plan': plan}).eq('id', user_id).execute()
+                supabase.table('users').update({
+                    'plan': plan
+                }).eq('id', user_id).execute()
             else:
+                # Fallback to local database
                 user = User.query.get(user_id)
                 if user:
                     user.plan = plan
                     db.session.commit()
             
+            # Save payment record
             payment = Payment(
                 payment_id=checkout_session.payment_intent,
                 order_id=session_id,
@@ -1131,6 +1136,7 @@ def payment_success():
             db.session.add(payment)
             db.session.commit()
             
+            # Update session
             session['user_plan'] = plan
             
             flash(f'🎉 Payment successful! Welcome to {plan.title()} Plan!', 'success')
@@ -1140,4 +1146,60 @@ def payment_success():
             return redirect(url_for('pricing'))
             
     except Exception as e:
-        print(
+        print(f"Error verifying payment: {e}")
+        flash('Error verifying payment. Please contact support.', 'error')
+        return redirect(url_for('pricing'))
+
+
+@app.route('/payment-cancelled')
+@login_required
+def payment_cancelled():
+    flash('Payment was cancelled. No charges were made.', 'info')
+    return redirect(url_for('pricing'))
+
+
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except ValueError:
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError:
+        return 'Invalid signature', 400
+    
+    if event['type'] == 'checkout.session.completed':
+        session_data = event['data']['object']
+        user_id = int(session_data['metadata']['user_id'])
+        plan = session_data['metadata']['plan']
+        
+        if supabase:
+            supabase.table('users').update({'plan': plan}).eq('id', user_id).execute()
+        else:
+            user = User.query.get(user_id)
+            if user:
+                user.plan = plan
+                db.session.commit()
+    
+    return '', 200
+    # Initialize database tables on startup
+def init_db():
+    with app.app_context():
+        try:
+            db.create_all()
+            print("=" * 50)
+            print("✅ Database tables created successfully!")
+            print("=" * 50)
+        except Exception as e:
+            print("=" * 50)
+            print(f"❌ Error creating database tables: {e}")
+            print("=" * 50)
+
+# Run initialization
+init_db()
+
+if __name__ == '__main__':
+    app.run(debug=True)
