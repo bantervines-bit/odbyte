@@ -44,8 +44,7 @@ if SUPABASE_URL and SUPABASE_KEY:
     except Exception as e:
         print(f"Error verifying payment: {e}")
         flash('Error verifying payment. Please contact support.', 'error')
-        return redirect(url_for('pricing'))
-
+       
 @app.route('/payment-cancelled')
 @login_required
 def payment_cancelled():
