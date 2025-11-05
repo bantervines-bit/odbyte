@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
 from datetime import datetime
-import razorpay
+import stripe
 import markdown
 from pathlib import Path
 import secrets
@@ -46,10 +46,16 @@ if SUPABASE_URL and SUPABASE_KEY:
 else:
     print("⚠️ Supabase credentials not found, using local database")
 
-# Razorpay Configuration
-RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_your_key_id')
-RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'your_key_secret')
-razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+# Stripe Configuration
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_your_secret_key')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_your_publishable_key')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_your_webhook_secret')
+
+print("=" * 50)
+print("💳 Stripe Configuration")
+print(f"STRIPE_PUBLISHABLE_KEY: {STRIPE_PUBLISHABLE_KEY[:20]}...")
+print(f"STRIPE_SECRET_KEY configured: {bool(stripe.api_key)}")
+print("=" * 50)
 
 # Plan Configuration
 PLAN_LIMITS = {
@@ -86,12 +92,24 @@ PLAN_LIMITS = {
 # Pricing Configuration (in USD cents)
 PRICING = {
     'gold': {
-        'monthly': 500,  # $5
-        'yearly': 3900   # $39 (save $21)
+        'monthly': {
+            'amount': 500,  # $5
+            'price_id': os.environ.get('STRIPE_GOLD_MONTHLY_PRICE_ID', 'price_gold_monthly')
+        },
+        'yearly': {
+            'amount': 3900,  # $39
+            'price_id': os.environ.get('STRIPE_GOLD_YEARLY_PRICE_ID', 'price_gold_yearly')
+        }
     },
     'diamond': {
-        'monthly': 1900,  # $19
-        'yearly': 17900   # $179 (save $49)
+        'monthly': {
+            'amount': 1900,  # $19
+            'price_id': os.environ.get('STRIPE_DIAMOND_MONTHLY_PRICE_ID', 'price_diamond_monthly')
+        },
+        'yearly': {
+            'amount': 17900,  # $179
+            'price_id': os.environ.get('STRIPE_DIAMOND_YEARLY_PRICE_ID', 'price_diamond_yearly')
+        }
     }
 }
 
@@ -182,6 +200,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     plan = db.Column(db.String(20), default='free')
+    stripe_customer_id = db.Column(db.String(200), unique=True, nullable=True)
+    stripe_subscription_id = db.Column(db.String(200), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
     prompts = db.relationship('Prompt', backref='author', lazy=True, cascade='all, delete-orphan')
@@ -210,8 +230,8 @@ class Favorite(db.Model):
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    payment_id = db.Column(db.String(200), nullable=False)
-    order_id = db.Column(db.String(200))
+    stripe_payment_intent_id = db.Column(db.String(200), nullable=False)
+    stripe_session_id = db.Column(db.String(200))
     amount = db.Column(db.Integer, nullable=False)
     currency = db.Column(db.String(10), default='USD')
     status = db.Column(db.String(50), nullable=False)
@@ -675,106 +695,301 @@ def upgrade():
         flash('You are already on a Custom plan!', 'info')
         return redirect(url_for('dashboard'))
     
-    return render_template('upgrade.html', razorpay_key=RAZORPAY_KEY_ID, pricing=PRICING)
+    return render_template('upgrade.html', 
+                         stripe_publishable_key=STRIPE_PUBLISHABLE_KEY, 
+                         pricing=PRICING)
 
-@app.route('/create-order', methods=['POST'])
+@app.route('/create-checkout-session', methods=['POST'])
 @login_required
-def create_order():
-    data = request.get_json()
-    plan_type = data.get('plan_type', 'gold')  # gold or diamond
-    billing_cycle = data.get('billing_cycle', 'monthly')  # monthly or yearly
-    
-    # Get amount from pricing config
-    if plan_type not in PRICING:
-        return jsonify({'error': 'Invalid plan type'}), 400
-    
-    amount = PRICING[plan_type][billing_cycle]
-    
-    order_data = {
-        'amount': amount,
-        'currency': 'USD',
-        'payment_capture': 1
-    }
-    
-    try:
-        order = razorpay_client.order.create(data=order_data)
-        
-        return jsonify({
-            'order_id': order['id'],
-            'amount': amount,
-            'currency': 'USD',
-            'key': RAZORPAY_KEY_ID,
-            'plan_type': plan_type,
-            'billing_cycle': billing_cycle
-        })
-    except Exception as e:
-        print(f"Error creating order: {e}")
-        return jsonify({'error': 'Failed to create order'}), 500
-
-@app.route('/payment-success', methods=['POST'])
-@login_required
-def payment_success():
+def create_checkout_session():
+    """Create Stripe Checkout Session"""
     try:
         data = request.get_json()
-        payment_id = data.get('razorpay_payment_id')
-        order_id = data.get('razorpay_order_id')
-        signature = data.get('razorpay_signature')
-        plan_type = data.get('plan_type', 'gold')
-        billing_cycle = data.get('billing_cycle', 'monthly')
+        plan_type = data.get('plan_type', 'gold')  # gold or diamond
+        billing_cycle = data.get('billing_cycle', 'monthly')  # monthly or yearly
         
-        # Verify payment signature
-        params_dict = {
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        }
+        # Validate plan and billing cycle
+        if plan_type not in PRICING or billing_cycle not in PRICING[plan_type]:
+            return jsonify({'error': 'Invalid plan or billing cycle'}), 400
         
-        razorpay_client.utility.verify_payment_signature(params_dict)
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
         
-        # Get amount from pricing config
-        amount = PRICING[plan_type][billing_cycle]
+        # Get price ID from config
+        price_id = PRICING[plan_type][billing_cycle]['price_id']
+        amount = PRICING[plan_type][billing_cycle]['amount']
+        
+        # Get or create Stripe customer
+        if supabase:
+            user_data = get_user_by_id(user.id)
+            stripe_customer_id = user_data.get('stripe_customer_id') if user_data else None
+        else:
+            user_obj = User.query.get(user.id)
+            stripe_customer_id = user_obj.stripe_customer_id if user_obj else None
+        
+        if not stripe_customer_id:
+            # Create new Stripe customer
+            customer = stripe.Customer.create(
+                email=user.email,
+                name=user.name,
+                metadata={
+                    'user_id': user.id,
+                    'plan': user.plan
+                }
+            )
+            stripe_customer_id = customer.id
+            
+            # Save customer ID to database
+            if supabase:
+                supabase.table('users').update({
+                    'stripe_customer_id': stripe_customer_id
+                }).eq('id', user.id).execute()
+            else:
+                user_obj = User.query.get(user.id)
+                if user_obj:
+                    user_obj.stripe_customer_id = stripe_customer_id
+                    db.session.commit()
+        
+        # Create Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            customer=stripe_customer_id,
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription' if billing_cycle in ['monthly', 'yearly'] else 'payment',
+            success_url=url_for('payment_success_page', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('upgrade', _external=True),
+            metadata={
+                'user_id': user.id,
+                'plan_type': plan_type,
+                'billing_cycle': billing_cycle
+            }
+        )
+        
+        return jsonify({
+            'sessionId': checkout_session.id,
+            'url': checkout_session.url
+        })
+        
+    except Exception as e:
+        print(f"Error creating checkout session: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/webhook/stripe', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError as e:
+        print(f"Invalid payload: {e}")
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        print(f"Invalid signature: {e}")
+        return jsonify({'error': 'Invalid signature'}), 400
+    
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        handle_checkout_session_completed(session)
+    
+    elif event['type'] == 'customer.subscription.updated':
+        subscription = event['data']['object']
+        handle_subscription_updated(subscription)
+    
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        handle_subscription_deleted(subscription)
+    
+    elif event['type'] == 'invoice.payment_succeeded':
+        invoice = event['data']['object']
+        handle_invoice_payment_succeeded(invoice)
+    
+    elif event['type'] == 'invoice.payment_failed':
+        invoice = event['data']['object']
+        handle_invoice_payment_failed(invoice)
+    
+    return jsonify({'status': 'success'}), 200
+
+def handle_checkout_session_completed(session):
+    """Handle successful checkout session"""
+    try:
+        user_id = int(session['metadata']['user_id'])
+        plan_type = session['metadata']['plan_type']
+        billing_cycle = session['metadata']['billing_cycle']
+        
+        # Get subscription ID
+        subscription_id = session.get('subscription')
+        customer_id = session.get('customer')
+        
+        # Update user plan
+        if supabase:
+            supabase.table('users').update({
+                'plan': plan_type,
+                'stripe_subscription_id': subscription_id,
+                'stripe_customer_id': customer_id
+            }).eq('id', user_id).execute()
+        else:
+            user = User.query.get(user_id)
+            if user:
+                user.plan = plan_type
+                user.stripe_subscription_id = subscription_id
+                user.stripe_customer_id = customer_id
+                db.session.commit()
         
         # Save payment record
         payment = Payment(
-            payment_id=payment_id,
-            order_id=order_id,
-            amount=amount,
-            status='success',
+            stripe_payment_intent_id=session.get('payment_intent', ''),
+            stripe_session_id=session['id'],
+            amount=session['amount_total'],
+            currency=session['currency'].upper(),
+            status='completed',
             plan_type=plan_type,
             billing_cycle=billing_cycle,
-            user_id=session['user_id']
+            user_id=user_id
         )
-        
         db.session.add(payment)
+        db.session.commit()
         
-        # Update user plan
-        user = get_current_user()
-        if user:
-            if supabase:
-                update_user_plan_supabase(user.id, plan_type)
-            else:
-                user_obj = User.query.get(session['user_id'])
-                if user_obj:
-                    user_obj.plan = plan_type
-            
-            db.session.commit()
-            session['user_plan'] = plan_type
-            
-            flash(f'Payment successful! Welcome to {plan_type.capitalize()} plan!', 'success')
-            return jsonify({'status': 'success', 'redirect': url_for('payment_success_page')})
-        else:
-            return jsonify({'error': 'User not found'}), 404
-            
-    except razorpay.errors.SignatureVerificationError:
-        return jsonify({'error': 'Payment verification failed'}), 400
+        print(f"✅ Payment completed for user {user_id}, plan: {plan_type}")
+        
     except Exception as e:
-        print(f"Payment error: {e}")
-        return jsonify({'error': 'Payment processing failed'}), 500
+        print(f"❌ Error handling checkout session: {e}")
+
+def handle_subscription_updated(subscription):
+    """Handle subscription updates"""
+    try:
+        customer_id = subscription['customer']
+        subscription_id = subscription['id']
+        status = subscription['status']
+        
+        # Find user by customer ID
+        if supabase:
+            response = supabase.table('users').select('*').eq('stripe_customer_id', customer_id).execute()
+            if response.data:
+                user_id = response.data[0]['id']
+                if status == 'active':
+                    print(f"✅ Subscription {subscription_id} is active for user {user_id}")
+                elif status in ['past_due', 'unpaid']:
+                    print(f"⚠️ Subscription {subscription_id} payment issue for user {user_id}")
+        else:
+            user = User.query.filter_by(stripe_customer_id=customer_id).first()
+            if user and status == 'active':
+                print(f"✅ Subscription {subscription_id} is active for user {user.id}")
+    
+    except Exception as e:
+        print(f"❌ Error handling subscription update: {e}")
+
+def handle_subscription_deleted(subscription):
+    """Handle subscription cancellation"""
+    try:
+        customer_id = subscription['customer']
+        
+        # Downgrade user to free plan
+        if supabase:
+            response = supabase.table('users').select('*').eq('stripe_customer_id', customer_id).execute()
+            if response.data:
+                user_id = response.data[0]['id']
+                supabase.table('users').update({
+                    'plan': 'free',
+                    'stripe_subscription_id': None
+                }).eq('id', user_id).execute()
+                print(f"⬇️ User {user_id} downgraded to free plan")
+        else:
+            user = User.query.filter_by(stripe_customer_id=customer_id).first()
+            if user:
+                user.plan = 'free'
+                user.stripe_subscription_id = None
+                db.session.commit()
+                print(f"⬇️ User {user.id} downgraded to free plan")
+    
+    except Exception as e:
+        print(f"❌ Error handling subscription deletion: {e}")
+
+def handle_invoice_payment_succeeded(invoice):
+    """Handle successful invoice payment"""
+    try:
+        customer_id = invoice['customer']
+        amount_paid = invoice['amount_paid']
+        
+        print(f"✅ Invoice paid: ${amount_paid/100} for customer {customer_id}")
+    
+    except Exception as e:
+        print(f"❌ Error handling invoice payment: {e}")
+
+def handle_invoice_payment_failed(invoice):
+    """Handle failed invoice payment"""
+    try:
+        customer_id = invoice['customer']
+        
+        print(f"❌ Invoice payment failed for customer {customer_id}")
+        # You can send email notification here
+    
+    except Exception as e:
+        print(f"❌ Error handling invoice payment failure: {e}")
 
 @app.route('/success')
 @login_required
 def payment_success_page():
+    """Payment success page"""
+    session_id = request.args.get('session_id')
+    
+    if session_id:
+        try:
+            # Retrieve the session
+            checkout_session = stripe.checkout.Session.retrieve(session_id)
+            
+            if checkout_session.payment_status == 'paid':
+                # Update session to reflect new plan
+                user = get_current_user()
+                if user:
+                    session['user_plan'] = user.plan
+                
+                return render_template('success.html', session=checkout_session)
+        except Exception as e:
+            print(f"Error retrieving session: {e}")
+    
     return render_template('success.html')
+
+@app.route('/cancel-subscription', methods=['POST'])
+@login_required
+def cancel_subscription():
+    """Cancel user subscription"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Get subscription ID
+        if supabase:
+            user_data = get_user_by_id(user.id)
+            subscription_id = user_data.get('stripe_subscription_id') if user_data else None
+        else:
+            user_obj = User.query.get(user.id)
+            subscription_id = user_obj.stripe_subscription_id if user_obj else None
+        
+        if not subscription_id:
+            return jsonify({'error': 'No active subscription found'}), 404
+        
+        # Cancel subscription at period end
+        stripe.Subscription.modify(
+            subscription_id,
+            cancel_at_period_end=True
+        )
+        
+        flash('Subscription will be cancelled at the end of the billing period.', 'info')
+        return jsonify({'status': 'success', 'message': 'Subscription cancelled'})
+    
+    except Exception as e:
+        print(f"Error cancelling subscription: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/about')
 def about():
