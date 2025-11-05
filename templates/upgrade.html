@@ -1,248 +1,419 @@
 {% extends "base.html" %}
 
-{% block title %}Upgrade to Diamond - ODByte{% endblock %}
+{% block title %}Upgrade Your Plan - ODByte{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="text-center mb-12">
-        <div class="text-6xl mb-4">💎</div>
         <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Upgrade to Diamond
+            Upgrade Your Plan
         </h1>
-        <p class="text-xl text-gray-400">Unlock unlimited prompts and premium features</p>
+        <p class="text-xl text-gray-400">Choose the perfect plan for your needs</p>
     </div>
     
-    <div class="grid md:grid-cols-2 gap-8 mb-12">
-        <!-- Current Plan (Silver) -->
-        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="text-4xl">🥈</div>
-                <h3 class="text-2xl font-bold text-gray-300">Your Current Plan: Silver</h3>
+    <!-- Current Plan Info -->
+    <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 mb-1">Current Plan</p>
+                <p class="text-2xl font-bold text-blue-400">{{ current_user.plan|title }}</p>
             </div>
-            <div class="text-4xl font-bold mb-6 text-gray-500">Free</div>
-            <ul class="space-y-3 text-gray-400">
-                <li>✓ 10 prompts/month (public only)</li>
-                <li>✓ Explore 50 public prompts</li>
-                <li>✓ 3 private bundles/month</li>
-                <li>✓ Basic features</li>
-                <li>✗ No exports</li>
-                <li>✗ No analytics</li>
-                <li>✗ No premium packs</li>
-            </ul>
+            <div class="text-4xl">
+                {% if current_user.plan == 'free' %}🥈
+                {% elif current_user.plan == 'gold' %}🏆
+                {% elif current_user.plan == 'diamond' %}💎
+                {% else %}⚡
+                {% endif %}
+            </div>
         </div>
+    </div>
+
+    <!-- Pricing Plans Grid -->
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
         
+        <!-- Gold Plan -->
+        <div class="bg-gradient-to-br from-yellow-600/20 to-orange-600/20 p-8 rounded-xl border-2 border-yellow-500 relative">
+            <div class="absolute -top-4 right-8 bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-1 rounded-full text-sm font-bold">
+                POPULAR
+            </div>
+            
+            <div class="flex items-center gap-3 mb-4">
+                <div class="text-5xl">🏆</div>
+                <h3 class="text-3xl font-bold text-yellow-400">Gold Plan</h3>
+            </div>
+            
+            <!-- Billing Toggle for Gold -->
+            <div class="mb-6">
+                <div class="inline-flex items-center gap-2 bg-[#0b0b0b] p-1 rounded-lg border border-gray-800 mb-4">
+                    <button onclick="switchGoldBilling('monthly')" 
+                            id="gold-monthly-btn"
+                            class="px-4 py-2 rounded-md font-semibold transition bg-yellow-600 text-white text-sm">
+                        Monthly
+                    </button>
+                    <button onclick="switchGoldBilling('yearly')" 
+                            id="gold-yearly-btn"
+                            class="px-4 py-2 rounded-md font-semibold transition text-gray-400 hover:text-white text-sm">
+                        Yearly
+                    </button>
+                </div>
+                
+                <div id="gold-monthly-price">
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span class="text-4xl font-bold text-yellow-400">$5</span>
+                        <span class="text-gray-300">/month</span>
+                    </div>
+                    <p class="text-sm text-gray-400">Billed monthly</p>
+                </div>
+                
+                <div id="gold-yearly-price" class="hidden">
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span class="text-4xl font-bold text-yellow-400">$39</span>
+                        <span class="text-gray-300">/year</span>
+                        <span class="px-2 py-1 bg-green-600 text-white text-xs rounded font-semibold">Save $21</span>
+                    </div>
+                    <p class="text-sm text-green-400 font-semibold">💰 Get 4 months FREE!</p>
+                </div>
+            </div>
+            
+            <ul class="space-y-3 text-gray-200 mb-8 min-h-[280px]">
+                <li class="flex items-start gap-2">
+                    <span class="text-yellow-400 mt-1">✓</span>
+                    <span><strong>200 prompts/month</strong> (public/private)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-yellow-400 mt-1">✓</span>
+                    <span><strong>Explore ALL prompts</strong></span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-yellow-400 mt-1">✓</span>
+                    <span><strong>30 private bundles/month</strong></span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-yellow-400 mt-1">✓</span>
+                    <span><strong>Access premium</strong> curated prompts</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-yellow-400 mt-1">✓</span>
+                    <span><strong>Priority support</strong> (email)</span>
+                </li>
+            </ul>
+            
+            <button onclick="upgradeToGold()" 
+                    id="gold-upgrade-btn"
+                    class="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:opacity-90 rounded-lg font-semibold transition glow">
+                Upgrade to Gold
+            </button>
+        </div>
+
         <!-- Diamond Plan -->
         <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-8 rounded-xl border-2 border-blue-500 relative">
             <div class="absolute -top-4 right-8 bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-1 rounded-full text-sm font-bold">
-                UPGRADE NOW
+                BEST VALUE
             </div>
             
             <div class="flex items-center gap-3 mb-4">
-                <div class="text-4xl">💎</div>
-                <h3 class="text-2xl font-bold text-blue-300">Diamond Plan</h3>
+                <div class="text-5xl">💎</div>
+                <h3 class="text-3xl font-bold text-blue-400">Diamond Plan</h3>
             </div>
             
+            <!-- Billing Toggle for Diamond -->
             <div class="mb-6">
-                <div class="flex items-baseline gap-3 mb-2">
-                    <span class="text-4xl font-bold text-blue-400">$5</span>
-                    <span class="text-gray-300">/month</span>
+                <div class="inline-flex items-center gap-2 bg-[#0b0b0b] p-1 rounded-lg border border-gray-800 mb-4">
+                    <button onclick="switchDiamondBilling('monthly')" 
+                            id="diamond-monthly-btn"
+                            class="px-4 py-2 rounded-md font-semibold transition bg-blue-600 text-white text-sm">
+                        Monthly
+                    </button>
+                    <button onclick="switchDiamondBilling('yearly')" 
+                            id="diamond-yearly-btn"
+                            class="px-4 py-2 rounded-md font-semibold transition text-gray-400 hover:text-white text-sm">
+                        Yearly
+                    </button>
                 </div>
-                <div class="text-sm text-gray-400 mb-2">or save with annual:</div>
-                <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-purple-400">$39</span>
-                    <span class="text-gray-300">/year</span>
-                    <span class="px-2 py-1 bg-green-600 text-white text-xs rounded font-semibold ml-2">Save $21</span>
+                
+                <div id="diamond-monthly-price">
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span class="text-4xl font-bold text-blue-400">$19</span>
+                        <span class="text-gray-300">/month</span>
+                    </div>
+                    <p class="text-sm text-gray-400">Billed monthly</p>
                 </div>
-                <p class="text-xs text-purple-300 mt-1">💰 Get 4 months FREE!</p>
+                
+                <div id="diamond-yearly-price" class="hidden">
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span class="text-4xl font-bold text-blue-400">$179</span>
+                        <span class="text-gray-300">/year</span>
+                        <span class="px-2 py-1 bg-green-600 text-white text-xs rounded font-semibold">Save $49</span>
+                    </div>
+                    <p class="text-sm text-green-400 font-semibold">💰 Get 4 months FREE!</p>
+                </div>
             </div>
             
-            <ul class="space-y-3 text-gray-200 mb-8">
-                <li>✓ <strong>200 prompts/month</strong> (public/private)</li>
-                <li>✓ <strong>Unlimited explore</strong></li>
-                <li>✓ <strong>30 bundles/month</strong></li>
-                <li>✓ <strong>Export to CSV/JSON/Notion</strong></li>
-                <li>✓ <strong>Premium curated packs</strong></li>
-                <li>✓ <strong>Create & earn</strong> from packs</li>
-                <li>✓ <strong>Prompt analytics</strong></li>
-                <li>✓ <strong>Priority support</strong></li>
+            <ul class="space-y-3 text-gray-200 mb-8 min-h-[280px]">
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-400 mt-1">✓</span>
+                    <span><strong>1,000 prompts/month</strong> (public/private)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-400 mt-1">✓</span>
+                    <span><strong>Explore ALL prompts</strong></span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-400 mt-1">✓</span>
+                    <span><strong>200 bundles/month</strong></span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-400 mt-1">✓</span>
+                    <span><strong>Access premium</strong> curated prompts</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-400 mt-1">✓</span>
+                    <span><strong>Priority support</strong> (email)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-400 mt-1">✓</span>
+                    <span><strong>Early access</strong> to new features</span>
+                </li>
             </ul>
-        </div>
-    </div>
-    
-    <!-- Payment Options -->
-    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
-        <h3 class="text-2xl font-semibold mb-6 text-center">Choose Your Payment Option</h3>
-        
-        <div class="grid md:grid-cols-2 gap-6">
-            <!-- Monthly -->
-            <div class="bg-[#0b0b0b] p-6 rounded-lg border-2 border-gray-700 hover:border-blue-500 transition cursor-pointer">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h4 class="text-xl font-semibold text-blue-400 mb-1">Monthly</h4>
-                        <p class="text-sm text-gray-400">Cancel anytime</p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-2xl font-bold text-blue-400">$5</div>
-                        <div class="text-xs text-gray-400">/month</div>
-                    </div>
-                </div>
-                <button onclick="initiatePayment('monthly')" 
-                        class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
-                    Subscribe Monthly
-                </button>
-            </div>
             
-            <!-- Annual -->
-            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-6 rounded-lg border-2 border-purple-500 hover:border-purple-400 transition cursor-pointer relative">
-                <div class="absolute -top-3 right-4 bg-green-600 px-3 py-1 rounded-full text-xs font-bold">
-                    BEST VALUE 🔥
-                </div>
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h4 class="text-xl font-semibold text-purple-400 mb-1">Annual</h4>
-                        <p class="text-sm text-gray-400">12 months for price of 8</p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-2xl font-bold text-purple-400">$39</div>
-                        <div class="text-xs text-gray-400">/year</div>
-                    </div>
-                </div>
-                <div class="mb-4 text-center">
-                    <p class="text-sm text-green-400 font-semibold">💰 Save $21/year</p>
-                    <p class="text-xs text-gray-400">4 months completely FREE!</p>
-                </div>
-                <button onclick="initiatePayment('annual')" 
-                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 rounded-lg font-semibold transition glow">
-                    Get Annual Plan
-                </button>
-            </div>
+            <button onclick="upgradeToDiamond()" 
+                    id="diamond-upgrade-btn"
+                    class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 rounded-lg font-semibold transition glow">
+                Upgrade to Diamond
+            </button>
         </div>
     </div>
-    
-    <!-- Benefits Breakdown -->
-    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800 mb-8">
-        <h3 class="text-2xl font-semibold mb-6 text-center">What You'll Unlock</h3>
-        <div class="grid md:grid-cols-4 gap-6">
-            <div class="text-center">
-                <div class="text-4xl mb-3">📝</div>
-                <h4 class="font-semibold mb-2 text-blue-400">Save More Prompts</h4>
-                <p class="text-sm text-gray-400">Save 200 prompts per month vs 10 on Silver</p>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl mb-3">📦</div>
-                <h4 class="font-semibold mb-2 text-green-400">More Bundles</h4>
-                <p class="text-sm text-gray-400">Create 30 private bundles per month vs 3 on Silver</p>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl mb-3">📊</div>
-                <h4 class="font-semibold mb-2 text-purple-400">Analytics</h4>
-                <p class="text-sm text-gray-400">Track views, saves, and engagement on your prompts</p>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl mb-3">💰</div>
-                <h4 class="font-semibold mb-2 text-orange-400">Earn Credits</h4>
-                <p class="text-sm text-gray-400">Create premium packs and earn extra prompt credits</p>
-            </div>
+
+    <!-- Comparison Table -->
+    <div class="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden mb-8">
+        <div class="p-6 border-b border-gray-800">
+            <h2 class="text-2xl font-bold text-center">Feature Comparison</h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-[#0b0b0b]">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-gray-400 font-semibold">Feature</th>
+                        <th class="px-6 py-4 text-center text-gray-400 font-semibold">Silver (Free)</th>
+                        <th class="px-6 py-4 text-center text-yellow-400 font-semibold">Gold</th>
+                        <th class="px-6 py-4 text-center text-blue-400 font-semibold">Diamond</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    <tr class="hover:bg-[#0b0b0b]">
+                        <td class="px-6 py-4 text-gray-300">Prompts per month</td>
+                        <td class="px-6 py-4 text-center text-gray-400">10</td>
+                        <td class="px-6 py-4 text-center text-yellow-400 font-semibold">200</td>
+                        <td class="px-6 py-4 text-center text-blue-400 font-semibold">1,000</td>
+                    </tr>
+                    <tr class="hover:bg-[#0b0b0b]">
+                        <td class="px-6 py-4 text-gray-300">Private prompts</td>
+                        <td class="px-6 py-4 text-center text-gray-400">✗</td>
+                        <td class="px-6 py-4 text-center text-yellow-400">✓</td>
+                        <td class="px-6 py-4 text-center text-blue-400">✓</td>
+                    </tr>
+                    <tr class="hover:bg-[#0b0b0b]">
+                        <td class="px-6 py-4 text-gray-300">Bundles per month</td>
+                        <td class="px-6 py-4 text-center text-gray-400">3</td>
+                        <td class="px-6 py-4 text-center text-yellow-400 font-semibold">30</td>
+                        <td class="px-6 py-4 text-center text-blue-400 font-semibold">200</td>
+                    </tr>
+                    <tr class="hover:bg-[#0b0b0b]">
+                        <td class="px-6 py-4 text-gray-300">Premium prompts access</td>
+                        <td class="px-6 py-4 text-center text-gray-400">✗</td>
+                        <td class="px-6 py-4 text-center text-yellow-400">✓</td>
+                        <td class="px-6 py-4 text-center text-blue-400">✓</td>
+                    </tr>
+                    <tr class="hover:bg-[#0b0b0b]">
+                        <td class="px-6 py-4 text-gray-300">Priority support</td>
+                        <td class="px-6 py-4 text-center text-gray-400">✗</td>
+                        <td class="px-6 py-4 text-center text-yellow-400">✓</td>
+                        <td class="px-6 py-4 text-center text-blue-400">✓</td>
+                    </tr>
+                    <tr class="hover:bg-[#0b0b0b]">
+                        <td class="px-6 py-4 text-gray-300">Early access to features</td>
+                        <td class="px-6 py-4 text-center text-gray-400">✗</td>
+                        <td class="px-6 py-4 text-center text-yellow-400">✗</td>
+                        <td class="px-6 py-4 text-center text-blue-400">✓</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
-    
-    <!-- FAQ -->
+
+    <!-- FAQ Section -->
     <div class="bg-[#1a1a1a] p-8 rounded-xl border border-gray-800">
-        <h3 class="text-xl font-semibold mb-4">Common Questions</h3>
-        <div class="space-y-4">
+        <h3 class="text-2xl font-bold mb-6">Frequently Asked Questions</h3>
+        <div class="grid md:grid-cols-2 gap-6">
             <div>
-                <h4 class="font-semibold text-blue-400 mb-1">What happens if I cancel monthly?</h4>
-                <p class="text-sm text-gray-400">You keep Diamond access until the end of your billing period. Your prompts are safe.</p>
+                <h4 class="font-semibold text-blue-400 mb-2">Can I cancel anytime?</h4>
+                <p class="text-sm text-gray-400">Yes! Cancel anytime. You'll keep access until the end of your billing period.</p>
             </div>
             <div>
-                <h4 class="font-semibold text-blue-400 mb-1">Can I switch from monthly to annual?</h4>
-                <p class="text-sm text-gray-400">Yes! Contact support and we'll help you switch to annual billing and save money.</p>
+                <h4 class="font-semibold text-blue-400 mb-2">What happens to my prompts if I downgrade?</h4>
+                <p class="text-sm text-gray-400">All your prompts stay safe. You just can't create new ones until you're under the limit.</p>
             </div>
             <div>
-                <h4 class="font-semibold text-blue-400 mb-1">Do I get a refund if I don't like it?</h4>
-                <p class="text-sm text-gray-400">Yes! We offer a 7-day money-back guarantee on all plans - no questions asked.</p>
+                <h4 class="font-semibold text-blue-400 mb-2">Do you offer refunds?</h4>
+                <p class="text-sm text-gray-400">Yes! 7-day money-back guarantee - no questions asked.</p>
             </div>
             <div>
-                <h4 class="font-semibold text-blue-400 mb-1">Why is annual better value?</h4>
-                <p class="text-sm text-gray-400">Annual costs $39 vs $60 if paid monthly ($5×12). You save $21 annually - that's 4 free months! If you plan to use ODByte for more than 8 months, annual is the smart choice.</p>
+                <h4 class="font-semibold text-blue-400 mb-2">Can I upgrade from Gold to Diamond later?</h4>
+                <p class="text-sm text-gray-400">Absolutely! Upgrade anytime and we'll prorate the difference.</p>
             </div>
         </div>
     </div>
-    
+
     <div class="text-center mt-8">
         <a href="{{ url_for('pricing') }}" class="text-blue-400 hover:text-blue-300">
             ← Back to Pricing
         </a>
     </div>
 </div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-[#1a1a1a] p-8 rounded-xl border border-blue-500 text-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mx-auto mb-4"></div>
+        <p class="text-xl font-semibold text-blue-400">Processing payment...</p>
+        <p class="text-sm text-gray-400 mt-2">Please wait, redirecting to Stripe Checkout</p>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <script>
-function initiatePayment(type) {
-    let amount = type === 'monthly' ? 500 : 3900; // $5 or $39 in cents
+// Initialize Stripe
+const stripe = Stripe('{{ stripe_publishable_key }}');
+
+// Track selected billing cycles
+let goldBillingCycle = 'monthly';
+let diamondBillingCycle = 'monthly';
+
+// Gold Plan Billing Toggle
+function switchGoldBilling(cycle) {
+    goldBillingCycle = cycle;
+    const monthlyBtn = document.getElementById('gold-monthly-btn');
+    const yearlyBtn = document.getElementById('gold-yearly-btn');
+    const monthlyPrice = document.getElementById('gold-monthly-price');
+    const yearlyPrice = document.getElementById('gold-yearly-price');
     
-    fetch('/create-order', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            plan_type: type,
-            amount: amount
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        const options = {
-            key: data.key,
-            amount: data.amount,
-            currency: 'USD',
-            order_id: data.order_id,
-            name: 'ODByte',
-            description: type === 'monthly' ? 'Diamond Plan - Monthly' : 'Diamond Plan - Annual',
-            handler: function (response) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/payment-success';
-                
-                const paymentId = document.createElement('input');
-                paymentId.type = 'hidden';
-                paymentId.name = 'razorpay_payment_id';
-                paymentId.value = response.razorpay_payment_id;
-                
-                const orderId = document.createElement('input');
-                orderId.type = 'hidden';
-                orderId.name = 'razorpay_order_id';
-                orderId.value = response.razorpay_order_id;
-                
-                const signature = document.createElement('input');
-                signature.type = 'hidden';
-                signature.name = 'razorpay_signature';
-                signature.value = response.razorpay_signature;
-                
-                const planType = document.createElement('input');
-                planType.type = 'hidden';
-                planType.name = 'plan_type';
-                planType.value = type;
-                
-                form.appendChild(paymentId);
-                form.appendChild(orderId);
-                form.appendChild(signature);
-                form.appendChild(planType);
-                
-                document.body.appendChild(form);
-                form.submit();
+    if (cycle === 'monthly') {
+        monthlyBtn.classList.add('bg-yellow-600', 'text-white');
+        monthlyBtn.classList.remove('text-gray-400');
+        yearlyBtn.classList.remove('bg-yellow-600', 'text-white');
+        yearlyBtn.classList.add('text-gray-400');
+        monthlyPrice.classList.remove('hidden');
+        yearlyPrice.classList.add('hidden');
+    } else {
+        yearlyBtn.classList.add('bg-yellow-600', 'text-white');
+        yearlyBtn.classList.remove('text-gray-400');
+        monthlyBtn.classList.remove('bg-yellow-600', 'text-white');
+        monthlyBtn.classList.add('text-gray-400');
+        monthlyPrice.classList.add('hidden');
+        yearlyPrice.classList.remove('hidden');
+    }
+}
+
+// Diamond Plan Billing Toggle
+function switchDiamondBilling(cycle) {
+    diamondBillingCycle = cycle;
+    const monthlyBtn = document.getElementById('diamond-monthly-btn');
+    const yearlyBtn = document.getElementById('diamond-yearly-btn');
+    const monthlyPrice = document.getElementById('diamond-monthly-price');
+    const yearlyPrice = document.getElementById('diamond-yearly-price');
+    
+    if (cycle === 'monthly') {
+        monthlyBtn.classList.add('bg-blue-600', 'text-white');
+        monthlyBtn.classList.remove('text-gray-400');
+        yearlyBtn.classList.remove('bg-blue-600', 'text-white');
+        yearlyBtn.classList.add('text-gray-400');
+        monthlyPrice.classList.remove('hidden');
+        yearlyPrice.classList.add('hidden');
+    } else {
+        yearlyBtn.classList.add('bg-blue-600', 'text-white');
+        yearlyBtn.classList.remove('text-gray-400');
+        monthlyBtn.classList.remove('bg-blue-600', 'text-white');
+        monthlyBtn.classList.add('text-gray-400');
+        monthlyPrice.classList.add('hidden');
+        yearlyPrice.classList.remove('hidden');
+    }
+}
+
+// Upgrade to Gold
+async function upgradeToGold() {
+    showLoading();
+    try {
+        const response = await fetch('/create-checkout-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            theme: {
-                color: '#3b82f6'
-            }
-        };
+            body: JSON.stringify({
+                plan_type: 'gold',
+                billing_cycle: goldBillingCycle
+            })
+        });
         
-        const rzp = new Razorpay(options);
-        rzp.open();
-    });
+        const data = await response.json();
+        
+        if (data.error) {
+            hideLoading();
+            alert('Error: ' + data.error);
+            return;
+        }
+        
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Failed to initiate payment. Please try again.');
+    }
+}
+
+// Upgrade to Diamond
+async function upgradeToDiamond() {
+    showLoading();
+    try {
+        const response = await fetch('/create-checkout-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plan_type: 'diamond',
+                billing_cycle: diamondBillingCycle
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            hideLoading();
+            alert('Error: ' + data.error);
+            return;
+        }
+        
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Failed to initiate payment. Please try again.');
+    }
+}
+
+function showLoading() {
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('hidden');
 }
 </script>
 {% endblock %}
