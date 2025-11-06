@@ -13,7 +13,8 @@ Marketing moves fast. And if you're not using AI to stay ahead, you're already b
 
 Email subject lines can make or break your campaign. This prompt gives you 10 variations instantly.
 
-"Prompt: Write 10 email subject lines for [product/service]. The email is about [main benefit]. Target audience: [describe audience]. Tone: [casual/professional/urgent]. Include emojis where relevant."
+Prompt:
+Write 10 email subject lines for [product/service]. The email is about [main benefit]. Target audience: [describe audience]. Tone: [casual/professional/urgent]. Include emojis where relevant.
 
 **Why it works:** Specificity is key. The more context you give, the better the results.
 
