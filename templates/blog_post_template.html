@@ -73,6 +73,94 @@
         white-space: pre-wrap;
     }
     
+    /* Prompt Card Styling */
+    .prompt-card {
+        background: #1a1a1a;
+        border: 1px solid #374151;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .prompt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .prompt-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: white;
+    }
+    
+    .copy-prompt-btn {
+        padding: 0.5rem 1rem;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .copy-prompt-btn:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+    }
+    
+    .copy-prompt-btn.copied {
+        background: #10b981;
+    }
+    
+    .prompt-content {
+        background: #0b0b0b;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        color: #e5e7eb;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9375rem;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    
+    .why-it-works {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #1e293b;
+        border-left: 4px solid #60a5fa;
+        border-radius: 0.5rem;
+        color: #cbd5e1;
+        font-size: 0.9375rem;
+        line-height: 1.8;
+    }
+    
+    .why-it-works strong {
+        color: #60a5fa;
+    }
+    
+    /* Regular code blocks (non-prompts) */
     .blog-content pre {
         background: #0b0b0b;
         border: 1px solid #374151;
@@ -115,11 +203,12 @@
         line-height: 2;
     }
     
-    /* Code block wrapper */
+    /* Code block wrapper for regular code */
     .code-block-wrapper {
         position: relative;
         margin: 2rem 0;
         max-width: 100%;
+        overflow: hidden;
     }
     
     .code-block-wrapper pre {
@@ -127,8 +216,8 @@
         padding-top: 3rem;
     }
     
-    /* Copy button for code blocks */
-    .copy-btn {
+    /* Copy button for regular code blocks */
+    .copy-code-btn {
         position: absolute;
         top: 0.75rem;
         right: 0.75rem;
@@ -144,12 +233,12 @@
         z-index: 10;
     }
     
-    .copy-btn:hover {
+    .copy-code-btn:hover {
         background: #4f46e5;
         transform: translateY(-1px);
     }
     
-    .copy-btn.copied {
+    .copy-code-btn.copied {
         background: #10b981;
     }
     
@@ -173,6 +262,15 @@
             font-size: 1rem;
         }
         
+        .prompt-card {
+            padding: 1rem;
+        }
+        
+        .prompt-content {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        
         .blog-content pre {
             padding: 1rem;
             font-size: 0.8rem;
@@ -188,7 +286,7 @@
 {% block content %}
 <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-8">
-        <div class="flex items-center gap-3 mb-4">
+        <div class="flex items-center gap-3 mb-4 flex-wrap">
             <span class="px-3 py-1 bg-blue-900/50 text-blue-300 text-sm rounded">{{ post.category }}</span>
             <span class="text-gray-500 text-sm">{{ post.date }}</span>
             <span class="text-gray-500 text-sm">• By {{ post.author }}</span>
@@ -205,30 +303,30 @@
         {% endif %}
     </header>
     
-    <div class="blog-content prose prose-invert max-w-none">
+    <div class="blog-content prose prose-invert max-w-none" id="blog-content">
         {{ post.content|safe }}
     </div>
     
     <!-- Call to Action -->
     <div class="text-center my-12 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-8">
-        <h3 class="text-2xl font-bold mb-4">Save Your Favorite Prompts</h3>
+        <h3 class="text-2xl font-bold mb-4">💡 Save Your Favorite Prompts</h3>
         <p class="text-gray-300 mb-6">
             Join ODByte to organize and share your best AI prompts
         </p>
         <a href="{{ url_for('signup') }}" 
            class="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-lg font-semibold hover:opacity-90 transition glow">
-            Get Started Free
+            🚀 Get Started Free
         </a>
     </div>
     
     <!-- Navigation -->
-    <div class="flex justify-between items-center mt-12 pt-8 border-t border-gray-800">
+    <div class="flex justify-between items-center mt-12 pt-8 border-t border-gray-800 flex-wrap gap-4">
         <a href="{{ url_for('blog') }}" 
            class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition">
             ← Back to Blog
         </a>
         
-        <div class="flex gap-4">
+        <div class="flex gap-4 flex-wrap">
             <a href="{{ url_for('explore') }}" 
                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition">
                 Explore Prompts
@@ -240,11 +338,92 @@
 
 {% block extra_js %}
 <script>
-// Add copy buttons to all code blocks
 document.addEventListener('DOMContentLoaded', function() {
-    const codeBlocks = document.querySelectorAll('.blog-content pre');
+    const blogContent = document.getElementById('blog-content');
+    
+    // Find all paragraphs that contain "Prompt:" 
+    const allParagraphs = blogContent.querySelectorAll('p');
+    
+    allParagraphs.forEach((para, index) => {
+        const text = para.textContent.trim();
+        
+        // Check if paragraph starts with "Prompt:" or contains prompt-like content
+        if (text.startsWith('Prompt:') || text.match(/^(Write|Create|Generate|Design|Build)/)) {
+            // Get the prompt text (remove "Prompt:" if present)
+            let promptText = text.replace(/^Prompt:\s*/i, '').trim();
+            
+            // Get the next element (might contain "Why it works")
+            let nextElement = para.nextElementSibling;
+            let whyItWorksText = '';
+            
+            if (nextElement && nextElement.textContent.includes('Why it works:')) {
+                whyItWorksText = nextElement.textContent.replace(/^Why it works:\s*/i, '').trim();
+            }
+            
+            // Create prompt card
+            const promptCard = document.createElement('div');
+            promptCard.className = 'prompt-card';
+            promptCard.innerHTML = `
+                <div class="prompt-header">
+                    <div class="prompt-label">
+                        <span>📝</span>
+                        <span>Prompt ${index + 1}</span>
+                    </div>
+                    <button class="copy-prompt-btn" data-prompt="${index}">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copy Prompt</span>
+                    </button>
+                </div>
+                <div class="prompt-content">${promptText}</div>
+                ${whyItWorksText ? `<div class="why-it-works"><strong>💡 Why it works:</strong> ${whyItWorksText}</div>` : ''}
+            `;
+            
+            // Replace the paragraph with prompt card
+            para.parentNode.replaceChild(promptCard, para);
+            
+            // Remove the "Why it works" paragraph if it exists
+            if (nextElement && nextElement.textContent.includes('Why it works:')) {
+                nextElement.remove();
+            }
+            
+            // Add copy functionality
+            const copyBtn = promptCard.querySelector('.copy-prompt-btn');
+            const promptContent = promptCard.querySelector('.prompt-content');
+            
+            copyBtn.addEventListener('click', function() {
+                const textToCopy = promptContent.textContent;
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const icon = copyBtn.querySelector('.copy-icon');
+                    const text = copyBtn.querySelector('.copy-text');
+                    
+                    icon.textContent = '✅';
+                    text.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        icon.textContent = '📋';
+                        text.textContent = 'Copy Prompt';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy prompt. Please try again.');
+                });
+            });
+        }
+    });
+    
+    // Add copy buttons to regular code blocks (not prompts)
+    const codeBlocks = blogContent.querySelectorAll('pre');
     
     codeBlocks.forEach((block, index) => {
+        // Skip if already wrapped
+        if (block.parentElement.classList.contains('code-block-wrapper') || 
+            block.parentElement.classList.contains('prompt-card')) {
+            return;
+        }
+        
         // Wrap in div
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
@@ -253,8 +432,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add copy button
         const button = document.createElement('button');
-        button.className = 'copy-btn';
-        button.textContent = '📋 Copy';
+        button.className = 'copy-code-btn';
+        button.innerHTML = '<span class="icon">📋</span> <span class="text">Copy</span>';
         button.setAttribute('data-index', index);
         
         button.addEventListener('click', function() {
@@ -262,17 +441,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const text = code ? code.textContent : block.textContent;
             
             navigator.clipboard.writeText(text).then(() => {
-                button.textContent = '✅ Copied!';
+                const icon = button.querySelector('.icon');
+                const text = button.querySelector('.text');
+                
+                icon.textContent = '✅';
+                text.textContent = 'Copied!';
                 button.classList.add('copied');
                 
                 setTimeout(() => {
-                    button.textContent = '📋 Copy';
+                    icon.textContent = '📋';
+                    text.textContent = 'Copy';
                     button.classList.remove('copied');
                 }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
             });
         });
         
         wrapper.appendChild(button);
+    });
+    
+    // Fix any overflow issues
+    const allCodeElements = document.querySelectorAll('.prompt-content, pre code');
+    allCodeElements.forEach(element => {
+        element.style.maxWidth = '100%';
+        element.style.overflowX = 'auto';
     });
 });
 </script>
