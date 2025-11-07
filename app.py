@@ -806,6 +806,8 @@ def newsletter_subscribe():
     flash('Thanks for subscribing! Check your inbox for confirmation.', 'success')
     return redirect(url_for('newsletter'))
 
+# Replace this section in your app.py (around line 840-900)
+
 @app.route('/blog')
 def blog():
     posts = []
@@ -831,6 +833,7 @@ def blog():
                                 key, value = line.split(':', 1)
                                 metadata[key.strip()] = value.strip()
                         
+                        # IMPORTANT: Allow HTML in markdown
                         posts.append({
                             'title': metadata.get('title', 'Untitled'),
                             'slug': metadata.get('slug', ''),
@@ -838,7 +841,15 @@ def blog():
                             'author': metadata.get('author', 'ODByte Team'),
                             'category': metadata.get('category', 'General'),
                             'excerpt': metadata.get('excerpt', ''),
-                            'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
+                            'content': markdown.markdown(
+                                post_content, 
+                                extensions=[
+                                    'fenced_code', 
+                                    'codehilite',
+                                    'extra'  # This allows HTML
+                                ],
+                                output_format='html5'
+                            )
                         })
         except Exception as e:
             print(f"Error reading {file}: {e}")
@@ -879,7 +890,24 @@ def blog_post(slug):
                                 'author': metadata.get('author', 'ODByte Team'),
                                 'category': metadata.get('category', 'General'),
                                 'excerpt': metadata.get('excerpt', ''),
-                                'content': markdown.markdown(post_content, extensions=['fenced_code', 'codehilite'])
+                                # IMPORTANT: Allow HTML in markdown
+                                'content': markdown.markdown(
+                                    post_content,
+                                    extensions=[
+                                        'fenced_code',
+                                        'codehilite', 
+                                        'extra',  # Allows HTML
+                                        'nl2br',  # Converts newlines to <br>
+                                        'sane_lists'  # Better list handling
+                                    ],
+                                    output_format='html5',
+                                    extension_configs={
+                                        'codehilite': {
+                                            'css_class': 'highlight',
+                                            'linenums': False
+                                        }
+                                    }
+                                )
                             }
                             return render_template('blog_post_template.html', post=post)
         except Exception as e:
@@ -888,7 +916,7 @@ def blog_post(slug):
     
     flash('Blog post not found!', 'error')
     return redirect(url_for('blog'))
-
+    
 # Bundle Routes
 @app.route('/bundles')
 @login_required
