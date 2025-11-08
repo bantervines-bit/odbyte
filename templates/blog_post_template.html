@@ -546,102 +546,148 @@
 
 {% block extra_js %}
 <script>
+// Replace the entire {% block extra_js %} section in blog_post_template.html
+
 document.addEventListener('DOMContentLoaded', function() {
     const blogContent = document.getElementById('blog-content');
     if (!blogContent) return;
     
     let promptCounter = 0;
-    const allElements = Array.from(blogContent.children);
     
-    for (let i = 0; i < allElements.length; i++) {
-        const element = allElements[i];
+    // Get all paragraphs
+    const paragraphs = blogContent.querySelectorAll('p');
+    
+    paragraphs.forEach((para, index) => {
+        // Check if paragraph contains ONLY "Prompt:" in bold
+        const strongTags = para.querySelectorAll('strong');
+        let isPromptHeader = false;
         
-        // Look for **Prompt:** pattern
-        if (element.tagName === 'P') {
-            const strongTags = element.querySelectorAll('strong');
-            let isPromptLabel = false;
-            
-            strongTags.forEach(strong => {
-                if (strong.textContent.trim().toLowerCase() === 'prompt:') {
-                    isPromptLabel = true;
-                }
-            });
-            
-            if (isPromptLabel) {
-                promptCounter++;
-                const nextElement = allElements[i + 1];
-                if (!nextElement) continue;
-                
-                let promptText = nextElement.textContent.trim();
-                
-                // Look for "Why it works"
-                const whyElement = allElements[i + 2];
-                let whyText = '';
-                
-                if (whyElement) {
-                    const whyStrong = whyElement.querySelectorAll('strong');
-                    whyStrong.forEach(strong => {
-                        if (strong.textContent.includes('Why it works:')) {
-                            whyText = whyElement.textContent
-                                .replace(/\*\*Why it works:\*\*/gi, '')
-                                .replace('Why it works:', '')
-                                .trim();
-                        }
-                    });
-                }
-                
-                // Create prompt box
-                const promptBox = document.createElement('div');
-                promptBox.className = 'prompt-box';
-                promptBox.innerHTML = `
-                    <div class="prompt-header">
-                        <div class="prompt-label">
-                            <span class="prompt-label-icon">💬</span>
-                            <span>Prompt ${promptCounter}</span>
-                        </div>
-                        <button class="copy-prompt-btn" onclick="copyPromptFromBox(this)">
-                            <span class="copy-icon">📋</span>
-                            <span class="copy-text">Copy Prompt</span>
-                        </button>
-                    </div>
-                    <div class="prompt-body">
-                        <div class="prompt-content">${promptText}</div>
-                        ${whyText ? `
-                            <div class="why-it-works">
-                                <div class="why-it-works-title">
-                                    <span>💡</span>
-                                    <span>Why it works:</span>
-                                </div>
-                                <div class="why-it-works-content">${whyText}</div>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                // Replace elements
-                element.parentNode.insertBefore(promptBox, element);
-                element.remove();
-                nextElement.remove();
-                if (whyText && whyElement) whyElement.remove();
-                
-                // Update array
-                allElements.splice(i, whyText ? 3 : 2, promptBox);
-                i--;
+        // Must be EXACTLY "**Prompt:**" or bold "Prompt 1", "Prompt 2" etc
+        strongTags.forEach(strong => {
+            const text = strong.textContent.trim();
+            if (text === 'Prompt:' || text.match(/^Prompt \d+$/)) {
+                isPromptHeader = true;
             }
+        });
+        
+        // Also check for emoji patterns like "💬 Prompt 1" or "📋 Copy Prompt"
+        const paraText = para.textContent.trim();
+        if (paraText.includes('💬 Prompt') || paraText.includes('📋 Copy Prompt')) {
+            isPromptHeader = false; // Skip if it's already formatted
         }
-    }
+        
+        if (isPromptHeader && !para.classList.contains('processed')) {
+            promptCounter++;
+            para.classList.add('processed'); // Mark as processed
+            
+            // Get next sibling for prompt content
+            let nextSibling = para.nextElementSibling;
+            if (!nextSibling) return;
+            
+            // Skip if next element is already a prompt-box
+            if (nextSibling.classList && nextSibling.classList.contains('prompt-box')) {
+                return;
+            }
+            
+            let promptText = nextSibling.textContent.trim();
+            
+            // Look for "Why it works" in the element after prompt
+            let whySibling = nextSibling.nextElementSibling;
+            let whyText = '';
+            
+            if (whySibling) {
+                const whyStrong = whySibling.querySelectorAll('strong');
+                whyStrong.forEach(strong => {
+                    if (strong.textContent.includes('Why it works:')) {
+                        whyText = whySibling.textContent
+                            .replace(/\*\*Why it works:\*\*/gi, '')
+                            .replace('Why it works:', '')
+                            .replace('💡', '')
+                            .trim();
+                    }
+                });
+            }
+            
+            // Create beautiful prompt box
+            const promptBox = document.createElement('div');
+            promptBox.className = 'prompt-box';
+            promptBox.innerHTML = `
+                <div class="prompt-header">
+                    <div class="prompt-label">
+                        <span class="prompt-label-icon">💬</span>
+                        <span>Prompt ${promptCounter}</span>
+                    </div>
+                    <button class="copy-prompt-btn" data-prompt="${promptCounter}">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copy Prompt</span>
+                    </button>
+                </div>
+                <div class="prompt-body">
+                    <div class="prompt-content">${promptText}</div>
+                    ${whyText ? `
+                        <div class="why-it-works">
+                            <div class="why-it-works-title">
+                                <span>💡</span>
+                                <span>Why it works:</span>
+                            </div>
+                            <div class="why-it-works-content">${whyText}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Insert the prompt box before the "Prompt:" paragraph
+            para.parentNode.insertBefore(promptBox, para);
+            
+            // Remove original elements
+            para.remove();
+            nextSibling.remove();
+            if (whyText && whySibling) {
+                whySibling.remove();
+            }
+            
+            // Add copy functionality
+            const copyBtn = promptBox.querySelector('.copy-prompt-btn');
+            copyBtn.addEventListener('click', function() {
+                const content = promptBox.querySelector('.prompt-content');
+                const text = content.textContent.trim();
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    const icon = copyBtn.querySelector('.copy-icon');
+                    const btnText = copyBtn.querySelector('.copy-text');
+                    
+                    icon.textContent = '✅';
+                    btnText.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        icon.textContent = '📋';
+                        btnText.textContent = 'Copy Prompt';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            });
+        }
+    });
     
-    // Add copy buttons to code blocks
+    // Add copy buttons to regular code blocks (not in prompt boxes)
     const codeBlocks = blogContent.querySelectorAll('pre');
     codeBlocks.forEach(block => {
+        // Skip if inside prompt box
         if (block.closest('.prompt-box')) return;
+        
+        // Skip if already wrapped
         if (block.parentElement.classList.contains('code-block-wrapper')) return;
         
+        // Create wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
         block.parentNode.insertBefore(wrapper, block);
         wrapper.appendChild(block);
         
+        // Add copy button
         const button = document.createElement('button');
         button.className = 'copy-code-btn';
         button.innerHTML = '<span class="icon">📋</span> <span class="text">Copy</span>';
@@ -665,9 +711,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         wrapper.appendChild(button);
     });
+    
+    console.log(`✅ Processed ${promptCounter} prompts`);
 });
 
-// Global copy function
+// Global function for inline copy buttons (if needed)
 function copyPromptFromBox(button) {
     const promptBox = button.closest('.prompt-box');
     const promptContent = promptBox.querySelector('.prompt-content');
@@ -686,8 +734,6 @@ function copyPromptFromBox(button) {
             text.textContent = 'Copy Prompt';
             button.classList.remove('copied');
         }, 2000);
-    }).catch(err => {
-        console.error('Copy failed:', err);
     });
 }
 </script>
