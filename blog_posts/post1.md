@@ -48,3 +48,4 @@ Remember these important points:
 ## Ready to Level Up?
 
 These prompts are just the beginning. Join ODByte to save, organize, and discover even more powerful prompts.
+{% endblock %}
