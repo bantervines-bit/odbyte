@@ -5,23 +5,31 @@
 {% block extra_css %}
 <style>
     /* ============================================
-       BLOG CONTENT CONTAINER
+       CONTAINER & SPACING
        ============================================ */
+    .blog-article {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
     .blog-content {
         max-width: 100%;
         overflow-wrap: break-word;
         word-wrap: break-word;
-        word-break: break-word;
+    }
+    
+    .blog-content > * {
+        max-width: 100%;
     }
     
     /* ============================================
-       HEADING HIERARCHY - Proper Sizing
+       HEADING HIERARCHY - Clear Size Differences
        ============================================ */
     .blog-content h1 {
-        font-size: 2.75rem;
+        font-size: 2.5rem;        /* 40px */
         font-weight: 800;
-        margin-top: 4rem;
-        margin-bottom: 2rem;
+        margin-top: 4rem;         /* 64px */
+        margin-bottom: 2rem;      /* 32px */
         padding-bottom: 1rem;
         color: #60a5fa;
         line-height: 1.2;
@@ -30,10 +38,10 @@
     }
     
     .blog-content h2 {
-        font-size: 2.25rem;
+        font-size: 2rem;          /* 32px */
         font-weight: 700;
-        margin-top: 3.5rem;
-        margin-bottom: 1.75rem;
+        margin-top: 4rem;         /* 64px */
+        margin-bottom: 1.75rem;   /* 28px */
         color: #60a5fa;
         line-height: 1.3;
         letter-spacing: -0.02em;
@@ -53,62 +61,67 @@
     }
     
     .blog-content h3 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;        /* 24px */
         font-weight: 600;
-        margin-top: 3rem;
-        margin-bottom: 1.5rem;
+        margin-top: 3rem;         /* 48px */
+        margin-bottom: 1.5rem;    /* 24px */
         color: #93c5fd;
         line-height: 1.4;
     }
     
     .blog-content h4 {
-        font-size: 1.375rem;
+        font-size: 1.25rem;       /* 20px */
         font-weight: 600;
-        margin-top: 2.5rem;
-        margin-bottom: 1.25rem;
+        margin-top: 2.5rem;       /* 40px */
+        margin-bottom: 1.25rem;   /* 20px */
         color: #a78bfa;
         line-height: 1.5;
     }
     
     .blog-content h5 {
-        font-size: 1.125rem;
+        font-size: 1.125rem;      /* 18px */
         font-weight: 600;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
+        margin-top: 2rem;         /* 32px */
+        margin-bottom: 1rem;      /* 16px */
         color: #c4b5fd;
         line-height: 1.5;
     }
     
     .blog-content h6 {
-        font-size: 1rem;
+        font-size: 1rem;          /* 16px */
         font-weight: 600;
-        margin-top: 1.75rem;
-        margin-bottom: 0.875rem;
+        margin-top: 1.75rem;      /* 28px */
+        margin-bottom: 0.875rem;  /* 14px */
         color: #ddd6fe;
         line-height: 1.5;
     }
     
     /* ============================================
-       PARAGRAPH & TEXT STYLES
+       TEXT & PARAGRAPHS - More Spacing
        ============================================ */
     .blog-content p {
         color: #d1d5db;
-        margin-bottom: 2rem;
-        line-height: 1.875;
-        font-size: 1.0625rem;
+        margin-bottom: 2rem;      /* 32px - increased */
+        line-height: 1.875;       /* 30px */
+        font-size: 1.0625rem;     /* 17px */
     }
     
-    .blog-content ul, .blog-content ol {
+    .blog-content ul,
+    .blog-content ol {
         color: #d1d5db;
-        margin-bottom: 2rem;
-        margin-top: 1.25rem;
+        margin-bottom: 2.5rem;    /* 40px - increased */
+        margin-top: 1.5rem;       /* 24px - increased */
         padding-left: 2.5rem;
         line-height: 1.875;
     }
     
     .blog-content li {
-        margin-bottom: 1rem;
+        margin-bottom: 1rem;      /* 16px - increased */
         line-height: 1.875;
+    }
+    
+    .blog-content li::marker {
+        color: #60a5fa;
     }
     
     .blog-content strong {
@@ -121,32 +134,29 @@
         font-style: italic;
     }
     
-    /* Inline code */
-    .blog-content p code,
-    .blog-content li code {
-        background: #1a1a1a;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.375rem;
-        font-size: 0.9em;
-        color: #60a5fa;
-        font-family: 'Courier New', monospace;
-        border: 1px solid #374151;
+    /* First paragraph - larger */
+    .blog-content > p:first-of-type {
+        font-size: 1.25rem;       /* 20px */
+        color: #e5e7eb;
+        line-height: 2;
+        margin-bottom: 3rem;      /* 48px */
     }
     
     /* ============================================
-       PROMPT BOX - Main Beautiful Card
+       PROMPT BOX - Beautiful Contained Design
        ============================================ */
     .prompt-box {
         background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
         border: 2px solid #6366f1;
         border-radius: 1.25rem;
-        margin: 3rem 0;
+        margin: 3rem 0;           /* 48px spacing */
         overflow: hidden;
         box-shadow: 
             0 10px 30px rgba(99, 102, 241, 0.25),
             0 4px 12px rgba(0, 0, 0, 0.3);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
+        max-width: 100%;
     }
     
     .prompt-box::before {
@@ -174,6 +184,7 @@
         border-color: #818cf8;
     }
     
+    /* Prompt Header */
     .prompt-header {
         background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         padding: 1.5rem 2rem;
@@ -205,6 +216,7 @@
         50% { transform: translateY(-5px); }
     }
     
+    /* Copy Button */
     .copy-prompt-btn {
         padding: 0.75rem 1.5rem;
         background: #ffffff;
@@ -227,20 +239,18 @@
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
     }
     
-    .copy-prompt-btn:active {
-        transform: translateY(0);
-    }
-    
     .copy-prompt-btn.copied {
         background: #10b981;
         color: white;
     }
     
+    /* Prompt Body */
     .prompt-body {
         padding: 2.5rem;
         background: rgba(15, 23, 42, 0.6);
     }
     
+    /* Prompt Content - CONTAINED */
     .prompt-content {
         background: #0f172a;
         border: 1px solid #334155;
@@ -248,7 +258,7 @@
         padding: 2rem;
         color: #e2e8f0;
         font-family: 'Courier New', Consolas, monospace;
-        font-size: 1.0625rem;
+        font-size: 1rem;
         line-height: 1.875;
         white-space: pre-wrap;
         word-break: break-word;
@@ -256,20 +266,9 @@
         max-width: 100%;
         overflow-x: auto;
         box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-        position: relative;
     }
     
-    .prompt-content::before {
-        content: '"';
-        position: absolute;
-        top: 0.5rem;
-        left: 0.5rem;
-        font-size: 3rem;
-        color: #475569;
-        opacity: 0.3;
-        font-family: Georgia, serif;
-    }
-    
+    /* Why It Works Box */
     .why-it-works {
         margin-top: 2rem;
         padding: 1.5rem 2rem;
@@ -296,7 +295,7 @@
     }
     
     /* ============================================
-       REGULAR CODE BLOCKS (non-prompts)
+       REGULAR CODE BLOCKS
        ============================================ */
     .blog-content pre {
         background: #0b0b0b;
@@ -317,9 +316,19 @@
         line-height: 1.875;
         display: block;
         white-space: pre;
-        word-break: normal;
-        overflow-wrap: normal;
         font-family: 'Courier New', monospace;
+    }
+    
+    /* Inline code */
+    .blog-content p code,
+    .blog-content li code {
+        background: #1a1a1a;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.9em;
+        color: #60a5fa;
+        font-family: 'Courier New', monospace;
+        border: 1px solid #374151;
     }
     
     /* ============================================
@@ -351,8 +360,26 @@
         font-size: 1.0625rem;
     }
     
+    .blog-content hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #374151, transparent);
+        margin: 3rem 0;
+    }
+    
     /* ============================================
-       CODE BLOCK WRAPPER (for regular code)
+       IMAGES
+       ============================================ */
+    .blog-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.875rem;
+        margin: 2.5rem 0;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* ============================================
+       CODE BLOCK WRAPPER
        ============================================ */
     .code-block-wrapper {
         position: relative;
@@ -384,13 +411,11 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     
     .copy-code-btn:hover {
         background: #4f46e5;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
     
     .copy-code-btn.copied {
@@ -398,55 +423,30 @@
     }
     
     /* ============================================
-       HORIZONTAL RULE
-       ============================================ */
-    .blog-content hr {
-        border: none;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #374151, transparent);
-        margin: 3rem 0;
-    }
-    
-    /* ============================================
-       IMAGES
-       ============================================ */
-    .blog-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 0.875rem;
-        margin: 2.5rem 0;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* ============================================
        RESPONSIVE DESIGN
        ============================================ */
     @media (max-width: 768px) {
         .blog-content h1 {
-            font-size: 2.25rem;
+            font-size: 2rem;
             margin-top: 2.5rem;
-            margin-bottom: 1.5rem;
         }
         
         .blog-content h2 {
-            font-size: 1.875rem;
-            margin-top: 2.5rem;
-            margin-bottom: 1.25rem;
+            font-size: 1.75rem;
+            margin-top: 3rem;
         }
         
         .blog-content h3 {
-            font-size: 1.5rem;
-            margin-top: 2rem;
+            font-size: 1.375rem;
+            margin-top: 2.5rem;
         }
         
         .blog-content h4 {
-            font-size: 1.25rem;
-            margin-top: 1.75rem;
+            font-size: 1.125rem;
+            margin-top: 2rem;
         }
         
-        .blog-content p,
-        .blog-content ul,
-        .blog-content ol {
+        .blog-content p {
             font-size: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -474,40 +474,16 @@
             width: 100%;
             justify-content: center;
         }
-        
-        .blog-content pre {
-            padding: 1.25rem;
-            font-size: 0.875rem;
-        }
-        
-        .code-block-wrapper pre {
-            padding-top: 3.5rem;
-        }
-    }
-    
-    /* ============================================
-       UTILITY: Prevent Horizontal Scroll
-       ============================================ */
-    .blog-content * {
-        max-width: 100%;
-    }
-    
-    /* First paragraph after header - larger font */
-    .blog-content > p:first-of-type {
-        font-size: 1.25rem;
-        color: #e5e7eb;
-        line-height: 2;
-        margin-bottom: 2.5rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<article class="blog-article max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Article Header -->
     <header class="mb-12">
-        <div class="flex items-center gap-3 mb-6 flex-wrap">
-            <span class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold rounded-lg shadow-lg">
+        <div class="flex items-center gap-4 mb-8 flex-wrap">
+            <span class="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold rounded-lg shadow-lg">
                 {{ post.category }}
             </span>
             <span class="text-gray-400 text-sm font-medium">{{ post.date }}</span>
@@ -515,7 +491,7 @@
             <span class="text-gray-400 text-sm font-medium">By {{ post.author }}</span>
         </div>
         
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-8 leading-tight bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-8 leading-tight bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             {{ post.title }}
         </h1>
         
@@ -527,9 +503,11 @@
     </header>
     
     <!-- Main Blog Content -->
+    {% autoescape false %}
     <div class="blog-content prose prose-invert max-w-none" id="blog-content">
-        {{ post.content|safe }}
+        {{ post.content }}
     </div>
+    {% endautoescape %}
     
     <!-- Call to Action -->
     <div class="text-center my-20 bg-gradient-to-br from-blue-900/40 via-purple-900/40 to-pink-900/40 border-2 border-blue-500/50 rounded-2xl p-12 shadow-2xl relative overflow-hidden">
@@ -568,27 +546,21 @@
 
 {% block extra_js %}
 <script>
-// Add this script to blog_post_template.html in {% block extra_js %}
-// This will automatically convert markdown-style prompts to beautiful boxes
-
 document.addEventListener('DOMContentLoaded', function() {
     const blogContent = document.getElementById('blog-content');
     if (!blogContent) return;
     
     let promptCounter = 0;
-    
-    // Get all elements
     const allElements = Array.from(blogContent.children);
     
     for (let i = 0; i < allElements.length; i++) {
         const element = allElements[i];
         
-        // Look for paragraphs containing "Prompt:" text
+        // Look for **Prompt:** pattern
         if (element.tagName === 'P') {
             const strongTags = element.querySelectorAll('strong');
             let isPromptLabel = false;
             
-            // Check if paragraph has **Prompt:** in bold
             strongTags.forEach(strong => {
                 if (strong.textContent.trim().toLowerCase() === 'prompt:') {
                     isPromptLabel = true;
@@ -597,24 +569,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (isPromptLabel) {
                 promptCounter++;
-                
-                // Get the next element (should be the prompt content)
                 const nextElement = allElements[i + 1];
                 if (!nextElement) continue;
                 
-                let promptText = '';
+                let promptText = nextElement.textContent.trim();
                 
-                // Check if it's a paragraph or pre/code block
-                if (nextElement.tagName === 'P') {
-                    promptText = nextElement.innerHTML.trim();
-                } else if (nextElement.tagName === 'PRE') {
-                    const code = nextElement.querySelector('code');
-                    promptText = code ? code.textContent : nextElement.textContent;
-                } else {
-                    promptText = nextElement.textContent.trim();
-                }
-                
-                // Look for "Why it works" section
+                // Look for "Why it works"
                 const whyElement = allElements[i + 2];
                 let whyText = '';
                 
@@ -622,14 +582,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     const whyStrong = whyElement.querySelectorAll('strong');
                     whyStrong.forEach(strong => {
                         if (strong.textContent.includes('Why it works:')) {
-                            whyText = whyElement.innerHTML
-                                .replace(/<strong>.*?Why it works:.*?<\/strong>/gi, '')
+                            whyText = whyElement.textContent
+                                .replace(/\*\*Why it works:\*\*/gi, '')
+                                .replace('Why it works:', '')
                                 .trim();
                         }
                     });
                 }
                 
-                // Create the beautiful prompt box
+                // Create prompt box
                 const promptBox = document.createElement('div');
                 promptBox.className = 'prompt-box';
                 promptBox.innerHTML = `
@@ -657,23 +618,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 
-                // Replace the original elements with the prompt box
+                // Replace elements
                 element.parentNode.insertBefore(promptBox, element);
                 element.remove();
                 nextElement.remove();
+                if (whyText && whyElement) whyElement.remove();
                 
-                if (whyText && whyElement) {
-                    whyElement.remove();
-                }
-                
-                // Update the array since we removed elements
+                // Update array
                 allElements.splice(i, whyText ? 3 : 2, promptBox);
-                i--; // Adjust index since we removed elements
+                i--;
             }
         }
     }
     
-    // Add copy buttons to regular code blocks (not in prompt boxes)
+    // Add copy buttons to code blocks
     const codeBlocks = blogContent.querySelectorAll('pre');
     codeBlocks.forEach(block => {
         if (block.closest('.prompt-box')) return;
@@ -709,41 +667,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Global function for copying prompts
+// Global copy function
 function copyPromptFromBox(button) {
     const promptBox = button.closest('.prompt-box');
     const promptContent = promptBox.querySelector('.prompt-content');
-    
-    // Get text content, removing HTML tags
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = promptContent.innerHTML;
-    const textToCopy = tempDiv.textContent.trim();
+    const textToCopy = promptContent.textContent.trim();
     
     navigator.clipboard.writeText(textToCopy).then(() => {
         const icon = button.querySelector('.copy-icon');
         const text = button.querySelector('.copy-text');
-        
-        const originalIcon = icon.textContent;
-        const originalText = text.textContent;
         
         icon.textContent = '✅';
         text.textContent = 'Copied!';
         button.classList.add('copied');
         
         setTimeout(() => {
-            icon.textContent = originalIcon;
-            text.textContent = originalText;
+            icon.textContent = '📋';
+            text.textContent = 'Copy Prompt';
             button.classList.remove('copied');
         }, 2000);
     }).catch(err => {
         console.error('Copy failed:', err);
-        alert('Failed to copy. Please try again.');
     });
-}
-
-// Alternative function name for compatibility
-function copyPrompt(button) {
-    copyPromptFromBox(button);
 }
 </script>
 {% endblock %}
