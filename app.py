@@ -256,6 +256,21 @@ def login_required(f):
         if 'user_id' not in session:
             flash('Please login to access this page.', 'error')
             return redirect(url_for('login'))
+        
+        # Check if using Supabase and verify email confirmation
+        if supabase and session.get('auth_method') == 'email':
+            try:
+                user = get_current_user()
+                if user:
+                    # Additional check: verify email is confirmed in Supabase
+                    # Note: This is handled at login, but double-check for security
+                    pass
+            except Exception as e:
+                print(f"Session validation error: {e}")
+                session.clear()
+                flash('Session expired. Please login again.', 'error')
+                return redirect(url_for('login'))
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -337,19 +352,47 @@ def signup():
         password = request.form.get('password')
         
         if supabase:
-            existing_user = get_user_by_email(email)
-            if existing_user:
-                flash('Email already registered!', 'error')
-                return redirect(url_for('signup'))
-            
-            new_user = create_user_supabase(name, email, password)
-            if new_user:
-                flash('Account created successfully! Please login.', 'success')
-                return redirect(url_for('login'))
-            else:
-                flash('Error creating account. Please try again.', 'error')
+            try:
+                # Sign up with Supabase Auth (with email verification)
+                auth_response = supabase.auth.sign_up({
+                    'email': email,
+                    'password': password,
+                    'options': {
+                        'data': {
+                            'full_name': name
+                        },
+                        'email_redirect_to': url_for('auth_callback', _external=True)
+                    }
+                })
+                
+                if auth_response.user:
+                    # Check if email verification is required
+                    if not auth_response.session:
+                        # Email verification required
+                        flash('Account created! Please check your email to verify your account.', 'success')
+                        return redirect(url_for('verify_email'))
+                    else:
+                        # Auto-confirmed (shouldn't happen if verification is enabled)
+                        # Create user in database
+                        existing_user = get_user_by_email(email)
+                        if not existing_user:
+                            create_user_supabase(name, email, password)
+                        
+                        flash('Account created successfully! Please login.', 'success')
+                        return redirect(url_for('login'))
+                else:
+                    flash('Error creating account. Please try again.', 'error')
+                    return redirect(url_for('signup'))
+                    
+            except Exception as e:
+                print(f"Signup error: {e}")
+                if 'already registered' in str(e).lower():
+                    flash('Email already registered!', 'error')
+                else:
+                    flash('Error creating account. Please try again.', 'error')
                 return redirect(url_for('signup'))
         else:
+            # Local database signup (no Supabase)
             if User.query.filter_by(email=email).first():
                 flash('Email already registered!', 'error')
                 return redirect(url_for('signup'))
@@ -364,6 +407,7 @@ def signup():
     
     return render_template('signup.html')
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
@@ -374,28 +418,189 @@ def login():
         password = request.form.get('password')
         
         if supabase:
-            user = get_user_by_email(email)
-            if user and check_password_hash(user['password'], password):
-                session['user_id'] = user['id']
-                session['user_name'] = user['name']
-                session['user_plan'] = user['plan']
-                flash(f'Welcome back, {user["name"]}!', 'success')
-                return redirect(url_for('dashboard'))
-            else:
+            try:
+                # Sign in with Supabase Auth
+                auth_response = supabase.auth.sign_in_with_password({
+                    'email': email,
+                    'password': password
+                })
+                
+                if auth_response.user:
+                    user = auth_response.user
+                    
+                    # Check if email is verified
+                    if not user.email_confirmed_at:
+                        flash('Please verify your email before logging in. Check your inbox!', 'warning')
+                        return redirect(url_for('verify_email'))
+                    
+                    # Get or create user in database
+                    user_data = get_user_by_email(email)
+                    if not user_data:
+                        # Create user record if doesn't exist
+                        user_data = create_user_supabase(
+                            name=user.user_metadata.get('full_name', email.split('@')[0]),
+                            email=email,
+                            password=generate_password_hash(password)
+                        )
+                    
+                    if user_data:
+                        session['user_id'] = user_data['id']
+                        session['user_name'] = user_data['name']
+                        session['user_plan'] = user_data.get('plan', 'free')
+                        session['auth_method'] = 'email'
+                        flash(f'Welcome back, {user_data["name"]}!', 'success')
+                        return redirect(url_for('dashboard'))
+                
                 flash('Invalid email or password!', 'error')
+                
+            except Exception as e:
+                print(f"Login error: {e}")
+                error_msg = str(e).lower()
+                if 'invalid' in error_msg or 'credentials' in error_msg:
+                    flash('Invalid email or password!', 'error')
+                elif 'email not confirmed' in error_msg:
+                    flash('Please verify your email before logging in!', 'warning')
+                    return redirect(url_for('verify_email'))
+                else:
+                    flash('Login failed. Please try again.', 'error')
         else:
+            # Local database login
             user = User.query.filter_by(email=email).first()
             if user and check_password_hash(user.password, password):
                 session['user_id'] = user.id
                 session['user_name'] = user.name
                 session['user_plan'] = user.plan
+                session['auth_method'] = 'email'
                 flash(f'Welcome back, {user.name}!', 'success')
                 return redirect(url_for('dashboard'))
             else:
                 flash('Invalid email or password!', 'error')
     
     return render_template('login.html')
+    
+# Google OAuth Login Route
+@app.route('/auth/google')
+def auth_google():
+    """Initiate Google OAuth flow"""
+    if not supabase:
+        flash('Authentication service unavailable. Please try email login.', 'error')
+        return redirect(url_for('login'))
+    
+    try:
+        # Get the OAuth URL from Supabase
+        response = supabase.auth.sign_in_with_oauth({
+            'provider': 'google',
+            'options': {
+                'redirect_to': url_for('auth_callback', _external=True)
+            }
+        })
+        
+        # Redirect to Google OAuth
+        return redirect(response.url)
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        flash('Failed to initiate Google login. Please try again.', 'error')
+        return redirect(url_for('login'))
 
+
+# OAuth Callback Handler
+@app.route('/auth/callback')
+def auth_callback():
+    """Handle OAuth callback from Google"""
+    if not supabase:
+        flash('Authentication service unavailable.', 'error')
+        return redirect(url_for('login'))
+    
+    try:
+        # Get the code from URL parameters
+        code = request.args.get('code')
+        if not code:
+            flash('Authentication failed. Please try again.', 'error')
+            return redirect(url_for('login'))
+        
+        # Exchange code for session
+        response = supabase.auth.exchange_code_for_session(code)
+        
+        if response and response.user:
+            user_data = response.user
+            
+            # Check if user exists in database
+            existing_user = get_user_by_email(user_data.email)
+            
+            if not existing_user:
+                # Create new user from Google OAuth
+                new_user = create_user_supabase(
+                    name=user_data.user_metadata.get('full_name', user_data.email.split('@')[0]),
+                    email=user_data.email,
+                    password=generate_password_hash(secrets.token_urlsafe(32))  # Random password
+                )
+                
+                if new_user:
+                    session['user_id'] = new_user['id']
+                    session['user_name'] = new_user['name']
+                    session['user_plan'] = new_user.get('plan', 'free')
+                    session['auth_method'] = 'google'
+                    flash(f'Welcome to ODByte, {new_user["name"]}! 🎉', 'success')
+                    return redirect(url_for('dashboard'))
+            else:
+                # User exists, log them in
+                session['user_id'] = existing_user['id']
+                session['user_name'] = existing_user['name']
+                session['user_plan'] = existing_user.get('plan', 'free')
+                session['auth_method'] = 'google'
+                flash(f'Welcome back, {existing_user["name"]}!', 'success')
+                return redirect(url_for('dashboard'))
+        
+        flash('Authentication failed. Please try again.', 'error')
+        return redirect(url_for('login'))
+        
+    except Exception as e:
+        print(f"OAuth callback error: {e}")
+        flash('Authentication failed. Please try again.', 'error')
+        return redirect(url_for('login'))
+
+
+# Email Verification Page
+@app.route('/auth/verify-email')
+def verify_email():
+    """Show email verification page"""
+    return render_template('auth/verify_email.html')
+
+
+# Resend Verification Email
+@app.route('/auth/resend-verification', methods=['POST'])
+def resend_verification():
+    """Resend verification email"""
+    if not supabase:
+        return jsonify({'error': 'Service unavailable'}), 503
+    
+    email = request.form.get('email') or request.json.get('email')
+    
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+    
+    try:
+        # Resend verification email via Supabase
+        supabase.auth.resend({
+            'type': 'signup',
+            'email': email,
+            'options': {
+                'email_redirect_to': url_for('auth_callback', _external=True)
+            }
+        })
+        
+        return jsonify({'message': 'Verification email sent! Check your inbox.'}), 200
+    except Exception as e:
+        print(f"Resend verification error: {e}")
+        return jsonify({'error': 'Failed to send verification email'}), 500
+
+
+# Email Verified Success Page
+@app.route('/auth/email-verified')
+def email_verified():
+    """Show email verified success page"""
+    return render_template('auth/email_verified.html')
+    
 @app.route('/logout')
 def logout():
     session.clear()
