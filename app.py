@@ -519,6 +519,24 @@ def resend_verification():
 def email_verified():
     """Show email verified success page"""
     return render_template('auth/email_verified.html')
+
+# Add this route after /auth/email-verified
+@app.route('/auth/callback')
+def auth_callback():
+    """Handle Supabase auth callback"""
+    # Get verification parameters
+    token_hash = request.args.get('token_hash')
+    type_param = request.args.get('type')
+    
+    if type_param == 'signup' or type_param == 'email':
+        # Email verification callback
+        return redirect(url_for('email_verified', 
+                               token_hash=token_hash, 
+                               type=type_param))
+    
+    # For other callback types
+    flash('Authentication completed!', 'success')
+    return redirect(url_for('login'))
     
 @app.route('/logout')
 def logout():
