@@ -364,6 +364,10 @@ def signup():
                         'email_redirect_to': url_for('auth_callback', _external=True)
                     }
                 })
+
+                print(f"🔍 DEBUG: Auth response: {auth_response}")  # ADD THIS
+                print(f"🔍 DEBUG: User: {auth_response.user}")  # ADD THIS
+                print(f"🔍 DEBUG: Session: {auth_response.session}")  # ADD THIS
                 
                 if auth_response.user:
                     # Check if email verification is required
